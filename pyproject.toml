@@ -6,8 +6,18 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.16.5",
+    "argon2-cffi>=25.1.0",
+    "asyncpg>=0.30.0",
     "fastapi>=0.116.1",
-    "pydantic>=2.11.7",
-    "sqlalchemy>=2.0.43",
+    "passlib[bcrypt]>=1.7.4",
+    "pydantic[email]>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    "python-jose[cryptography]>=3.5.0",
+    "sqlalchemy[asyncio]>=2.0.43",
     "uvicorn[standard]>=0.35.0",
+    "aiosqlite>=0.21.0",
+    "python-multipart>=0.0.20",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "httpx>=0.28.1",
 ]
