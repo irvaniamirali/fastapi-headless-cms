@@ -1,13 +1,15 @@
 import pytest
+import uuid
 
 
 @pytest.mark.asyncio
 async def test_login_invalid_password(http_client):
+    unique_email = f"wrongpass_{uuid.uuid4()}@example.com"
     # Register user
     await http_client.post(
         "/v1/users/register",
-        data={
-            "username": "wrongpass@example.com",
+        json={
+            "email": unique_email,
             "password": "CorrectPassword123!"
         }
     )
@@ -15,7 +17,7 @@ async def test_login_invalid_password(http_client):
     response = await http_client.post(
         "/v1/auth/login",
         data={
-            "username": "wrongpass@example.com",
+            "username": unique_email,
             "password": "WrongPassword"
         }
     )
