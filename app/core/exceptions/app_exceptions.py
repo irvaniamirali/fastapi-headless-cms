@@ -79,6 +79,39 @@ class InvalidCredentialsException(AppBaseException):
         )
 
 
+class PermissionDeniedException(AppBaseException):
+    def __init__(self, message: str = "Permission denied"):
+        super().__init__(
+            message=message,
+            status_code=status.HTTP_403_FORBIDDEN,
+            error_code=ErrorCode.PERMISSION_DENIED,
+        )
+
+
+class ValidationException(AppBaseException):
+    def __init__(
+            self,
+            message: str = "Validation error",
+            error_code: str = "VALIDATION_ERROR",
+            details: dict[str, Any] | None = None,
+    ):
+        super().__init__(
+            message=message,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            error_code=error_code,
+            details=details,
+        )
+
+
+class NotFoundException(AppBaseException):
+    def __init__(self, message: str = "Resource not found"):
+        super().__init__(
+            message=message,
+            status_code=status.HTTP_404_NOT_FOUND,
+            error_code=ErrorCode.NOT_FOUND,
+        )
+
+
 async def app_exception_handler(request: Request, exc: AppBaseException):
     return JSONResponse(
         status_code=exc.status_code,
