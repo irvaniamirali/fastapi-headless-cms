@@ -29,11 +29,11 @@ class ListPosts:
         self.post_repository = post_repository
 
     async def execute(
-            self,
-            *,
-            skip: int = 0,
-            limit: int = 20,
-            search: str | None = None,
+        self,
+        *,
+        skip: int = 0,
+        limit: int = 20,
+        search: str | None = None,
     ) -> PostList:
         items, total = await self.post_repository.list(
             skip=skip, limit=limit, search=search

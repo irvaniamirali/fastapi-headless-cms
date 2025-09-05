@@ -9,6 +9,6 @@ from .repositories import PostRepositoryInterface, PostRepository
 
 
 def get_post_repository(
-        session: Annotated[AsyncSession, Depends(get_session)]
+    session: Annotated[AsyncSession, Depends(get_session)],
 ) -> PostRepositoryInterface:
     return PostRepository(session)

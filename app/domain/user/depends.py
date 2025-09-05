@@ -9,5 +9,7 @@ from .repositories import UserRepositoryInterface, UserRepository
 from .models import User
 
 
-async def get_user_repository(session: Annotated[AsyncSession, Depends(get_session)]) -> UserRepositoryInterface:
+async def get_user_repository(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> UserRepositoryInterface:
     return UserRepository(session, User)

@@ -15,8 +15,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 async def get_current_authenticated_user(
-        user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)],
-        access_token: str = Depends(oauth2_scheme),
+    user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)],
+    access_token: str = Depends(oauth2_scheme),
 ) -> User:
     unauthorized_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

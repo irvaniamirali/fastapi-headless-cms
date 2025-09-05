@@ -1,4 +1,8 @@
-from app.core.exceptions.app_exceptions import NotFoundException, PermissionDeniedException, ConflictException
+from app.core.exceptions.app_exceptions import (
+    NotFoundException,
+    PermissionDeniedException,
+    ConflictException,
+)
 
 from ..repositories import CommentRepositoryInterface
 from ..schemas import CommentOut
@@ -15,12 +19,12 @@ class UpdateComment:
         self.comment_repository = comment_repository
 
     async def execute(
-            self,
-            *,
-            comment_id: int,
-            content: str,
-            actor_id: int,
-            is_superuser: bool = False
+        self,
+        *,
+        comment_id: int,
+        content: str,
+        actor_id: int,
+        is_superuser: bool = False,
     ) -> CommentOut:
         """
         Update a comment's content.
@@ -59,5 +63,5 @@ class UpdateComment:
             author_id=updated.author_id,
             content=updated.content,
             parent_id=updated.parent_id,
-            replies=[]
+            replies=[],
         )

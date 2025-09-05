@@ -1,4 +1,7 @@
-from app.core.exceptions.app_exceptions import ConflictException, DatabaseOperationException
+from app.core.exceptions.app_exceptions import (
+    ConflictException,
+    DatabaseOperationException,
+)
 from app.utils.security import hash_password
 
 from ..repositories import UserRepositoryInterface
@@ -24,7 +27,9 @@ class RegisterUser:
         if await self.user_repository.exists("email", user_schema.email):
             raise ConflictException("Email already registered.")
 
-        user = User(email=user_schema.email, password=hash_password(user_schema.password))
+        user = User(
+            email=user_schema.email, password=hash_password(user_schema.password)
+        )
 
         try:
             await self.user_repository.insert(user)

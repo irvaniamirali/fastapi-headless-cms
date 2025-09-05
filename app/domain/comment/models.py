@@ -8,10 +8,16 @@ class Comment(Base):
     __tablename__ = "comments"
 
     id = Column(Integer, primary_key=True, index=True)
-    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
-    author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    post_id = Column(
+        Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False
+    )
+    author_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     content = Column(String(2000), nullable=False)
-    parent_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"), nullable=True)
+    parent_id = Column(
+        Integer, ForeignKey("comments.id", ondelete="CASCADE"), nullable=True
+    )
 
     is_deleted = Column(Boolean, default=False, nullable=False)
 
@@ -21,7 +27,11 @@ class Comment(Base):
     post = relationship("Post", back_populates="comments")
     author = relationship("User", back_populates="comments")
     parent = relationship("Comment", remote_side=[id], back_populates="replies")
-    replies = relationship("Comment", back_populates="parent", cascade="all, delete-orphan")
+    replies = relationship(
+        "Comment", back_populates="parent", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:  # pragma: no cover
-        return f"<Comment id={self.id} post_id={self.post_id} author_id={self.author_id}>"
+        return (
+            f"<Comment id={self.id} post_id={self.post_id} author_id={self.author_id}>"
+        )

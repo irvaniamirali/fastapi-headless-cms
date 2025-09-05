@@ -72,10 +72,7 @@ async def registered_user(db_session):
     Fixture to create a registered user with a unique email for each test.
     """
     unique_email = f"test_post_user_{uuid.uuid4()}@example.com"
-    user_data = {
-        "email": unique_email,
-        "password": "StrongPassword123!"
-    }
+    user_data = {"email": unique_email, "password": "StrongPassword123!"}
     user_repository = UserRepository(db_session, User)
     user_schema = UserCreate(**user_data)
     user = await RegisterUser(user_repository).execute(user_schema)
@@ -88,10 +85,7 @@ async def registered_user2(db_session):
     Fixture to create a second registered user with a unique email for permission tests.
     """
     unique_email = f"test_post_user2_{uuid.uuid4()}@example.com"
-    user_data = {
-        "email": unique_email,
-        "password": "StrongPassword123!"
-    }
+    user_data = {"email": unique_email, "password": "StrongPassword123!"}
     user_repository = UserRepository(db_session, User)
     user_schema = UserCreate(**user_data)
     user = await RegisterUser(user_repository).execute(user_schema)
@@ -104,10 +98,7 @@ async def registered_superuser(db_session):
     Fixture to create a registered superuser with a unique email for each test.
     """
     unique_email = f"superuser_{uuid.uuid4()}@example.com"
-    user_data = {
-        "email": unique_email,
-        "password": "StrongPassword123!"
-    }
+    user_data = {"email": unique_email, "password": "StrongPassword123!"}
     user_repository = UserRepository(db_session, User)
     user_schema = UserCreate(**user_data)
     user = await RegisterUser(user_repository).execute(user_schema)
@@ -123,14 +114,18 @@ async def create_post_fixture(db_session, registered_user):
     """
     Fixture to create a post for tests.
     """
-    async def _create_post(title: str = "Test Post", content: str = "This is a test post content.", author=registered_user):
+
+    async def _create_post(
+        title: str = "Test Post",
+        content: str = "This is a test post content.",
+        author=registered_user,
+    ):
         post_repository = PostRepository(db_session)
         post = await post_repository.create(
-            title=title,
-            content=content,
-            author_id=author.id
+            title=title, content=content, author_id=author.id
         )
         return post
+
     return _create_post
 
 
@@ -143,17 +138,14 @@ async def create_comment_fixture(db_session, create_post_fixture, registered_use
     post_obj = await create_post_fixture()
 
     async def _create_comment(
-            post: Post = post_obj,
-            author=registered_user,
-            content: str = "Test comment content.",
-            parent_id: int = None
+        post: Post = post_obj,
+        author=registered_user,
+        content: str = "Test comment content.",
+        parent_id: int = None,
     ):
         comment_repository = CommentRepository(db_session)
         comment = Comment(
-            post_id=post.id,
-            author_id=author.id,
-            content=content,
-            parent_id=parent_id
+            post_id=post.id, author_id=author.id, content=content, parent_id=parent_id
         )
         created_comment = await comment_repository.create(comment)
         return created_comment

@@ -76,5 +76,5 @@ class CreateComment:
             author_id=created.author_id,
             content=created.content,
             parent_id=created.parent_id,
-            replies=[]
+            replies=[],
         )

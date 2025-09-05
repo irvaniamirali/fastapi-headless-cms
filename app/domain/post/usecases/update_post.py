@@ -1,4 +1,7 @@
-from app.core.exceptions.app_exceptions import PermissionDeniedException, NotFoundException
+from app.core.exceptions.app_exceptions import (
+    PermissionDeniedException,
+    NotFoundException,
+)
 
 from ..repositories import PostRepositoryInterface
 from ..schemas import PostUpdate, PostOut
@@ -37,12 +40,12 @@ class UpdatePost:
         self.post_repository = post_repository
 
     async def execute(
-            self,
-            *,
-            post_id: int,
-            data: PostUpdate,
-            actor_id: int,
-            is_superuser: bool = False,
+        self,
+        *,
+        post_id: int,
+        data: PostUpdate,
+        actor_id: int,
+        is_superuser: bool = False,
     ) -> PostOut:
         post = await self.post_repository.get_by_id(post_id)
         if not post:

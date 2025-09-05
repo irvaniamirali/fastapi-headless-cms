@@ -5,7 +5,7 @@ from app.utils.jwt import create_access_token
 
 @pytest.mark.asyncio
 async def test_delete_comment_already_deleted(
-        http_client, registered_user, create_comment_fixture
+    http_client, registered_user, create_comment_fixture
 ):
     comment = await create_comment_fixture(author=registered_user)
 

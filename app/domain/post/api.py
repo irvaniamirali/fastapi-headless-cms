@@ -27,9 +27,9 @@ router = APIRouter(
     summary="Create a new post",
 )
 async def create_post(
-        data: PostCreate,
-        current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
-        post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
+    data: PostCreate,
+    current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
+    post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
 ):
     return await CreatePost(post_repository).execute(
         data=data,
@@ -44,10 +44,14 @@ async def create_post(
     description="Returns a paginated list of posts. Supports optional search by title/content.",
 )
 async def list_posts(
-        post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
-        skip: int = Query(0, ge=0, description="Number of items to skip"),
-        limit: int = Query(20, ge=1, le=100, description="Maximum number of items to return"),
-        search: str | None = Query(None, min_length=1, description="Search term for title/content"),
+    post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(
+        20, ge=1, le=100, description="Maximum number of items to return"
+    ),
+    search: str | None = Query(
+        None, min_length=1, description="Search term for title/content"
+    ),
 ):
     """
     List posts with pagination and optional search.
@@ -71,8 +75,8 @@ async def list_posts(
     summary="Get a single post",
 )
 async def get_post(
-        id_or_slug: str,
-        post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
+    id_or_slug: str,
+    post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
 ):
     """
     Retrieve a single post by its ID (integer) or slug (string).
@@ -86,10 +90,10 @@ async def get_post(
     summary="Update a post",
 )
 async def update_post(
-        post_id: int,
-        data: PostUpdate,
-        current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
-        post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
+    post_id: int,
+    data: PostUpdate,
+    current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
+    post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
 ):
     return await UpdatePost(post_repository).execute(
         post_id=post_id,
@@ -105,9 +109,9 @@ async def update_post(
     summary="Delete a post",
 )
 async def delete_post(
-        post_id: int,
-        current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
-        post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
+    post_id: int,
+    current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
+    post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
 ):
     await DeletePost(post_repository).execute(
         post_id=post_id,

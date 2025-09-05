@@ -19,11 +19,7 @@ class PostRepository(PostRepositoryInterface):
         return res.scalar_one_or_none()
 
     async def list(
-            self,
-            *,
-            skip: int = 0,
-            limit: int = 20,
-            search: str | None = None
+        self, *, skip: int = 0, limit: int = 20, search: str | None = None
     ) -> tuple[list[Post], int]:
         stmt = select(Post)
         count_stmt = select(func.count()).select_from(Post)
@@ -56,12 +52,12 @@ class PostRepository(PostRepositoryInterface):
             candidate = f"{base}-{i}"
 
     async def create(
-            self,
-            *,
-            title: str,
-            content: str,
-            author_id: int,
-            slug: str | None = None,
+        self,
+        *,
+        title: str,
+        content: str,
+        author_id: int,
+        slug: str | None = None,
     ) -> Post:
         base_slug = slugify(slug or title)
         unique_slug = await self._ensure_unique_slug(base_slug)
@@ -72,12 +68,12 @@ class PostRepository(PostRepositoryInterface):
         return obj
 
     async def update(
-            self,
-            *,
-            post: Post,
-            title: str | None = None,
-            content: str | None = None,
-            slug: str | None = None,
+        self,
+        *,
+        post: Post,
+        title: str | None = None,
+        content: str | None = None,
+        slug: str | None = None,
     ) -> Post:
         if title is not None:
             post.title = title

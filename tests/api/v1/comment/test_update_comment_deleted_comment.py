@@ -7,7 +7,7 @@ from app.domain.comment.repositories.comment import CommentRepository
 
 @pytest.mark.asyncio
 async def test_update_comment_deleted_comment(
-        http_client, registered_user, create_comment_fixture, db_session: AsyncSession
+    http_client, registered_user, create_comment_fixture, db_session: AsyncSession
 ):
     comment = await create_comment_fixture(author=registered_user)
 
@@ -19,7 +19,9 @@ async def test_update_comment_deleted_comment(
     headers = {"Authorization": f"Bearer {access_token}"}
     update_data = {"content": "Attempt to update deleted comment."}
 
-    response = await http_client.patch(f"/v1/comments/{comment.id}", json=update_data, headers=headers)
+    response = await http_client.patch(
+        f"/v1/comments/{comment.id}", json=update_data, headers=headers
+    )
 
     assert response.status_code == 404
     assert response.json()["error"]["message"] == "Comment not found"

@@ -13,7 +13,9 @@ class ListComments:
     def __init__(self, comment_repository: CommentRepositoryInterface):
         self.comment_repository = comment_repository
 
-    async def execute(self, *, post_id: int, skip: int = 0, limit: int = 20) -> CommentList:
+    async def execute(
+        self, *, post_id: int, skip: int = 0, limit: int = 20
+    ) -> CommentList:
         """
         List comments for a given post with pagination.
 
@@ -31,5 +33,10 @@ class ListComments:
         if not post_exists:
             raise NotFoundException("Post not found")
 
-        comments, total = await self.comment_repository.list_by_post(post_id, skip=skip, limit=limit)
-        return CommentList(total=total, items=[CommentOut.model_validate(comment) for comment in comments])
+        comments, total = await self.comment_repository.list_by_post(
+            post_id, skip=skip, limit=limit
+        )
+        return CommentList(
+            total=total,
+            items=[CommentOut.model_validate(comment) for comment in comments],
+        )

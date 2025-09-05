@@ -13,10 +13,7 @@ from .usecases.update_comment import UpdateComment
 from .usecases.delete_comment import DeleteComment
 from .usecases.list_comments import ListComments
 
-router = APIRouter(
-    prefix="/comments",
-    tags=["Comments"]
-)
+router = APIRouter(prefix="/comments", tags=["Comments"])
 
 
 @router.post(
@@ -33,9 +30,9 @@ router = APIRouter(
     },
 )
 async def create_comment(
-        comment_schema: CommentCreate,
-        current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
-        comment_repository: CommentRepositoryInterface = Depends(get_comment_repository)
+    comment_schema: CommentCreate,
+    current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
+    comment_repository: CommentRepositoryInterface = Depends(get_comment_repository),
 ):
     return await CreateComment(comment_repository).execute(
         data=comment_schema, author_id=current_user.id
@@ -54,10 +51,16 @@ async def create_comment(
     },
 )
 async def list_comments(
-        comment_repository: Annotated[CommentRepositoryInterface, Depends(get_comment_repository)],
-        post_id: Annotated[int, Path(..., ge=1, description="ID of the post")],
-        skip: Annotated[int, Query(ge=0, description="Number of comments to skip for pagination")] = 0,
-        limit: Annotated[int, Query(ge=1, le=100, description="Maximum number of comments to return")] = 20,
+    comment_repository: Annotated[
+        CommentRepositoryInterface, Depends(get_comment_repository)
+    ],
+    post_id: Annotated[int, Path(..., ge=1, description="ID of the post")],
+    skip: Annotated[
+        int, Query(ge=0, description="Number of comments to skip for pagination")
+    ] = 0,
+    limit: Annotated[
+        int, Query(ge=1, le=100, description="Maximum number of comments to return")
+    ] = 20,
 ):
     return await ListComments(comment_repository).execute(
         post_id=post_id, skip=skip, limit=limit
@@ -79,17 +82,21 @@ async def list_comments(
     },
 )
 async def update_comment(
-        comment_schema: CommentUpdate,
-        comment_id: Annotated[int, Path(..., ge=1, description="ID of the comment to update")],
-        current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
-        comment_repository: Annotated[CommentRepositoryInterface, Depends(get_comment_repository)],
+    comment_schema: CommentUpdate,
+    comment_id: Annotated[
+        int, Path(..., ge=1, description="ID of the comment to update")
+    ],
+    current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
+    comment_repository: Annotated[
+        CommentRepositoryInterface, Depends(get_comment_repository)
+    ],
 ):
-        return await UpdateComment(comment_repository).execute(
-            comment_id=comment_id,
-            content=comment_schema.content,
-            actor_id=current_user.id,
-            is_superuser=current_user.is_superuser
-        )
+    return await UpdateComment(comment_repository).execute(
+        comment_id=comment_id,
+        content=comment_schema.content,
+        actor_id=current_user.id,
+        is_superuser=current_user.is_superuser,
+    )
 
 
 @router.delete(
@@ -105,13 +112,17 @@ async def update_comment(
     },
 )
 async def delete_comment(
-        comment_id: Annotated[int, Path(..., ge=1, description="ID of the comment to delete")],
-        current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
-        comment_repository: Annotated[CommentRepositoryInterface, Depends(get_comment_repository)],
+    comment_id: Annotated[
+        int, Path(..., ge=1, description="ID of the comment to delete")
+    ],
+    current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
+    comment_repository: Annotated[
+        CommentRepositoryInterface, Depends(get_comment_repository)
+    ],
 ):
     await DeleteComment(comment_repository).execute(
         comment_id=comment_id,
         actor_id=current_user.id,
-        is_superuser=current_user.is_superuser
+        is_superuser=current_user.is_superuser,
     )
     return None

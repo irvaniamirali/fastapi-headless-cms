@@ -19,11 +19,7 @@ class DeleteComment:
         self.comment_repository = comment_repository
 
     async def execute(
-            self,
-            *,
-            comment_id: int,
-            actor_id: int,
-            is_superuser: bool = False
+        self, *, comment_id: int, actor_id: int, is_superuser: bool = False
     ) -> None:
         """
         Soft delete a comment by ID.

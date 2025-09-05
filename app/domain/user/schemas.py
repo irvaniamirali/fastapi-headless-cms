@@ -15,6 +15,4 @@ class UserRead(BaseModel):
     id: int
     email: Email
 
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
