@@ -21,7 +21,6 @@ class UserRepository(UserRepositoryInterface):
         return user
 
     async def exists(self, field: str, value: Any) -> bool:
-        """Check if a record with given field=value exists."""
         stmt = select(self.model).where(getattr(self.model, field) == value)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none() is not None
@@ -32,8 +31,8 @@ class UserRepository(UserRepositoryInterface):
         return result.scalar_one_or_none()
 
     async def create(self, *, email: str, hashed_password: str) -> User:
-        user = User(email=email, hashed_password=hashed_password)
+        user = User(email=email, password=hashed_password)
         self.session.add(user)
-        await self.session.flush() # get PK
+        await self.session.commit()
         await self.session.refresh(user)
         return user
