@@ -14,7 +14,7 @@ class Post(Base):
     author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-
+    comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
     author = relationship("User", back_populates="posts")
 
     def __repr__(self) -> str:  # pragma: no cover

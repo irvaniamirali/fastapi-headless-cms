@@ -8,9 +8,13 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 from app.domain.user.usecases.register_user import RegisterUser
 from app.domain.user.models import User
+from app.domain.post.models import Post
+from app.domain.comment.models import Comment
 from app.domain.user.schemas import UserCreate
 from app.domain.user.repositories import UserRepository
 from app.domain.post.repositories import PostRepository
+from app.domain.comment.repositories import CommentRepository
+
 from app.infrastructure.database.base import Base
 from app.infrastructure.database.session import get_session
 from app.main import app
@@ -95,6 +99,26 @@ async def registered_user2(db_session):
 
 
 @pytest_asyncio.fixture
+async def registered_superuser(db_session):
+    """
+    Fixture to create a registered superuser with a unique email for each test.
+    """
+    unique_email = f"superuser_{uuid.uuid4()}@example.com"
+    user_data = {
+        "email": unique_email,
+        "password": "StrongPassword123!"
+    }
+    user_repository = UserRepository(db_session, User)
+    user_schema = UserCreate(**user_data)
+    user = await RegisterUser(user_repository).execute(user_schema)
+    user.is_superuser = True
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture
 async def create_post_fixture(db_session, registered_user):
     """
     Fixture to create a post for tests.
@@ -108,3 +132,30 @@ async def create_post_fixture(db_session, registered_user):
         )
         return post
     return _create_post
+
+
+@pytest_asyncio.fixture
+async def create_comment_fixture(db_session, create_post_fixture, registered_user):
+    """
+    Fixture to create a comment for tests.
+    """
+
+    post_obj = await create_post_fixture()
+
+    async def _create_comment(
+            post: Post = post_obj,
+            author=registered_user,
+            content: str = "Test comment content.",
+            parent_id: int = None
+    ):
+        comment_repository = CommentRepository(db_session)
+        comment = Comment(
+            post_id=post.id,
+            author_id=author.id,
+            content=content,
+            parent_id=parent_id
+        )
+        created_comment = await comment_repository.create(comment)
+        return created_comment
+
+    return _create_comment
