@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from .error_codes import ErrorCode
@@ -117,3 +117,7 @@ async def app_exception_handler(request: Request, exc: AppBaseException):
         status_code=exc.status_code,
         content=exc.to_dict(),
     )
+
+
+def register_exception_handlers(app: FastAPI) -> None:
+    app.add_exception_handler(AppBaseException, app_exception_handler)  # type: ignore
