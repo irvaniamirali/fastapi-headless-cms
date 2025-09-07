@@ -10,7 +10,9 @@ async def test_update_post_success(http_client, create_post_fixture, registered_
     headers = {"Authorization": f"Bearer {access_token}"}
 
     update_data = {"title": "Updated Title", "content": "Updated content"}
-    response = await http_client.patch(f"/v1/posts/{post.id}", json=update_data, headers=headers)
+    response = await http_client.patch(
+        f"/v1/posts/{post.id}", json=update_data, headers=headers
+    )
 
     assert response.status_code == 200
     updated_post = response.json()

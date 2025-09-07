@@ -4,17 +4,14 @@ from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.domain.auth.schemas import Token
-from app.domain.user.schemas import UserRead
-from app.domain.user.repositories import UserRepositoryInterface
 from app.domain.user.depends import get_user_repository
+from app.domain.user.repositories import UserRepositoryInterface
+from app.domain.user.schemas import UserRead
 
 from .depends import get_current_authenticated_user
 from .usecases.login_user import LoginUser
 
-router = APIRouter(
-    prefix="/auth",
-    tags=["Auth"]
-)
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post(
@@ -25,12 +22,12 @@ router = APIRouter(
         200: {"description": "Successful login, returns access token"},
         401: {"description": "Invalid credentials"},
         404: {"description": "User not found"},
-        500: {"description": "Internal server error"}
-    }
+        500: {"description": "Internal server error"},
+    },
 )
 async def login(
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-        user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)],
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)],
 ):
     """
     Login endpoint for users.
@@ -52,7 +49,9 @@ async def login(
     status_code=status.HTTP_200_OK,
     summary="Get current authenticated user",
 )
-async def get_current_user(current_user: Annotated[UserRead, Depends(get_current_authenticated_user)]):
+async def get_current_user(
+    current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
+):
     """
     Return the information of the currently authenticated user.
 

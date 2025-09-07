@@ -1,5 +1,10 @@
-from app.core.exceptions.app_exceptions import NotFoundException, PermissionDeniedException, ConflictException
+from app.core.exceptions.app_exceptions import (
+    ConflictException,
+    NotFoundException,
+    PermissionDeniedException,
+)
 
+from ..models import Comment
 from ..repositories import CommentRepositoryInterface
 from ..schemas import CommentOut
 
@@ -15,12 +20,12 @@ class UpdateComment:
         self.comment_repository = comment_repository
 
     async def execute(
-            self,
-            *,
-            comment_id: int,
-            content: str,
-            actor_id: int,
-            is_superuser: bool = False
+        self,
+        *,
+        comment_id: int,
+        content: str,
+        actor_id: int,
+        is_superuser: bool = False,
     ) -> CommentOut:
         """
         Update a comment's content.
@@ -51,13 +56,6 @@ class UpdateComment:
         if comment.author_id != actor_id and not is_superuser:
             raise PermissionDeniedException("Not allowed to edit this comment")
 
-        updated = await self.comment_repository.update(comment, content)
+        updated: Comment = await self.comment_repository.update(comment, content)
 
-        return CommentOut(
-            id=updated.id,
-            post_id=updated.post_id,
-            author_id=updated.author_id,
-            content=updated.content,
-            parent_id=updated.parent_id,
-            replies=[]
-        )
+        return CommentOut.model_validate(updated)

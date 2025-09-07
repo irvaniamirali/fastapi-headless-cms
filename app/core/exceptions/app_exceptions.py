@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from .error_codes import ErrorCode
@@ -10,12 +10,12 @@ class AppBaseException(Exception):
     """Base class for all custom exceptions in the application."""
 
     def __init__(
-            self,
-            *,
-            message: str,
-            status_code: int,
-            error_code: str,
-            details: dict[str, Any] | None = None
+        self,
+        *,
+        message: str,
+        status_code: int,
+        error_code: str,
+        details: dict[str, Any] | None = None,
     ) -> None:
         self.message = message
         self.status_code = status_code
@@ -37,10 +37,10 @@ class AppBaseException(Exception):
 
 class ConflictException(AppBaseException):
     def __init__(
-            self,
-            message: str = "Conflict",
-            error_code: str = ErrorCode.CONFLICT,
-            details: dict[str, Any] | None = None,
+        self,
+        message: str = "Conflict",
+        error_code: str = ErrorCode.CONFLICT,
+        details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(
             message=message,
@@ -52,11 +52,11 @@ class ConflictException(AppBaseException):
 
 class DatabaseOperationException(AppBaseException):
     def __init__(
-            self,
-            operation: str,
-            message: str = "Database operation failed",
-            error_code: str = ErrorCode.DATABASE_ERROR,
-            internal_error: str | None = None,
+        self,
+        operation: str,
+        message: str = "Database operation failed",
+        error_code: str = ErrorCode.DATABASE_ERROR,
+        internal_error: str | None = None,
     ) -> None:
         details = {"operation": operation}
         if internal_error:
@@ -90,10 +90,10 @@ class PermissionDeniedException(AppBaseException):
 
 class ValidationException(AppBaseException):
     def __init__(
-            self,
-            message: str = "Validation error",
-            error_code: str = "VALIDATION_ERROR",
-            details: dict[str, Any] | None = None,
+        self,
+        message: str = "Validation error",
+        error_code: str = "VALIDATION_ERROR",
+        details: dict[str, Any] | None = None,
     ):
         super().__init__(
             message=message,
@@ -117,3 +117,7 @@ async def app_exception_handler(request: Request, exc: AppBaseException):
         status_code=exc.status_code,
         content=exc.to_dict(),
     )
+
+
+def register_exception_handlers(app: FastAPI) -> None:
+    app.add_exception_handler(AppBaseException, app_exception_handler)  # type: ignore

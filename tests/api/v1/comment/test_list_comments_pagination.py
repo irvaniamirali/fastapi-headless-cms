@@ -2,7 +2,9 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_list_comments_pagination(http_client, create_comment_fixture, create_post_fixture):
+async def test_list_comments_pagination(
+    http_client, create_comment_fixture, create_post_fixture
+):
     post = await create_post_fixture()
     for _ in range(5):
         await create_comment_fixture(post=post)

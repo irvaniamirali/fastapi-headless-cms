@@ -7,10 +7,7 @@ from .repositories import UserRepositoryInterface
 from .schemas import UserCreate, UserRead
 from .usecases.register_user import RegisterUser
 
-router = APIRouter(
-    prefix="/users",
-    tags=["Users"]
-)
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post(
@@ -25,8 +22,8 @@ router = APIRouter(
     },
 )
 async def register_user(
-        user_schema: UserCreate,
-        user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)]
+    user_schema: UserCreate,
+    user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)],
 ):
     """
     Endpoint to register a new user.

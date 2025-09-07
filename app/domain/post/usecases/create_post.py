@@ -33,7 +33,9 @@ class CreatePost:
 
         title = (create_data.get("title") or "").strip()
         content = (create_data.get("content") or "").strip()
-        slug = (create_data.get("slug") or "").strip() if create_data.get("slug") else None
+        slug = (
+            (create_data.get("slug") or "").strip() if create_data.get("slug") else None
+        )
 
         if not title:
             raise ValidationException("Title cannot be empty")

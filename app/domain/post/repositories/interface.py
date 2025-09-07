@@ -1,22 +1,20 @@
 from abc import ABC, abstractmethod
+from typing import Sequence
 
 from ..models import Post
 
 
 class PostRepositoryInterface(ABC):
     @abstractmethod
-    async def get_by_id(self, post_id: int) -> Post | None:
-        ...
+    async def get_by_id(self, post_id: int) -> Post | None: ...
 
     @abstractmethod
-    async def get_by_slug(self, slug: str) -> Post | None:
-        ...
+    async def get_by_slug(self, slug: str) -> Post | None: ...
 
     @abstractmethod
     async def list(
         self, *, skip: int = 0, limit: int = 20, search: str | None = None
-    ) -> tuple[list[Post], int]:
-        ...
+    ) -> tuple[Sequence[Post], int]: ...
 
     @abstractmethod
     async def create(
@@ -26,8 +24,7 @@ class PostRepositoryInterface(ABC):
         content: str,
         author_id: int,
         slug: str | None = None,
-    ) -> Post:
-        ...
+    ) -> Post: ...
 
     @abstractmethod
     async def update(
@@ -37,9 +34,7 @@ class PostRepositoryInterface(ABC):
         title: str | None = None,
         content: str | None = None,
         slug: str | None = None,
-    ) -> Post:
-        ...
+    ) -> Post: ...
 
     @abstractmethod
-    async def delete(self, *, post: Post) -> None:
-        ...
+    async def delete(self, *, post: Post) -> None: ...
