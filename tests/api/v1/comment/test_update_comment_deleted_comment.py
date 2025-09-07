@@ -13,7 +13,7 @@ async def test_update_comment_deleted_comment(
 
     # Soft delete the comment
     comment_repository = CommentRepository(db_session)
-    await comment_repository.delete(comment)
+    await comment_repository.soft_delete_comment(comment)
 
     access_token = create_access_token(registered_user.email)
     headers = {"Authorization": f"Bearer {access_token}"}
