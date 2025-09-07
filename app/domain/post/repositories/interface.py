@@ -17,6 +17,9 @@ class PostRepositoryInterface(ABC):
     ) -> tuple[Sequence[Post], int]: ...
 
     @abstractmethod
+    async def post_exists(self, post_id: int) -> bool: ...
+
+    @abstractmethod
     async def create(
         self,
         *,
