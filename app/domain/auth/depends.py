@@ -5,9 +5,9 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
 from app.core.config import settings
-from app.domain.user.repositories import UserRepositoryInterface
 from app.domain.user.depends import get_user_repository
 from app.domain.user.models import User
+from app.domain.user.repositories import UserRepositoryInterface
 
 from .schemas import TokenPayload
 
@@ -27,8 +27,8 @@ async def get_current_authenticated_user(
     try:
         decoded_payload = jwt.decode(
             access_token,
-            settings.JWT_SECRET_KEY,
-            algorithms=[settings.JWT_ALGORITHM],
+            settings.JWT_SECRET_KEY.get_secret_value(),
+            algorithms=[settings.JWT_SIGNING_ALGORITHM],
         )
         token_payload = TokenPayload(**decoded_payload)
     except (JWTError, ValueError):

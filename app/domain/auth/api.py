@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.domain.auth.schemas import Token
-from app.domain.user.schemas import UserRead
-from app.domain.user.repositories import UserRepositoryInterface
 from app.domain.user.depends import get_user_repository
+from app.domain.user.repositories import UserRepositoryInterface
+from app.domain.user.schemas import UserRead
 
 from .depends import get_current_authenticated_user
 from .usecases.login_user import LoginUser
