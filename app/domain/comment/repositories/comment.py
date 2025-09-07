@@ -1,6 +1,6 @@
-from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.domain.post.models import Post
 
@@ -21,7 +21,7 @@ class CommentRepository(CommentRepositoryInterface):
     async def get_by_id(self, comment_id: int) -> Comment | None:
         result = await self.session.execute(
             select(Comment)
-            .where(Comment.id == comment_id, Comment.is_deleted == False)
+            .where(Comment.id == comment_id, Comment.is_deleted.is_(False))
             .options(selectinload(Comment.replies))
         )
         return result.scalar_one_or_none()
@@ -31,18 +31,18 @@ class CommentRepository(CommentRepositoryInterface):
     ) -> tuple[list[Comment], int]:
         query = (
             select(Comment)
-            .where(Comment.post_id == post_id, Comment.is_deleted == False)
+            .where(Comment.post_id == post_id, Comment.is_deleted.is_(False))
             .options(selectinload(Comment.replies))
             .offset(skip)
             .limit(limit)
         )
         result = await self.session.execute(query)
-        items: list[Comment] = result.scalars().all()
+        items: list[Comment] = result.scalars().all()  # type: ignore[assignment]
 
         total_query = (
             select(func.count())
             .select_from(Comment)
-            .where(Comment.post_id == post_id, Comment.is_deleted == False)
+            .where(Comment.post_id == post_id, Comment.is_deleted.is_(False))
         )
         total_result = await self.session.execute(total_query)
         total: int = total_result.scalar_one()
@@ -50,15 +50,16 @@ class CommentRepository(CommentRepositoryInterface):
         return items, total
 
     async def update(self, comment: Comment, content: str) -> Comment:
-        comment.content = content
+        comment.content = content  # type: ignore[assignment]
         self.session.add(comment)
         await self.session.commit()
         await self.session.refresh(comment)
-        return comment
+        updated = await self.get_by_id(int(comment.id))
+        return updated or comment
 
     async def delete(self, comment: Comment) -> None:
         """Soft delete a comment."""
-        comment.is_deleted = True
+        comment.is_deleted = True  # type: ignore[assignment]
         self.session.add(comment)
         await self.session.commit()
 

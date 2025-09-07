@@ -1,7 +1,7 @@
 from app.core.exceptions.app_exceptions import NotFoundException
 
 from ..repositories import CommentRepositoryInterface
-from ..schemas import CommentOut, CommentList
+from ..schemas import CommentList, CommentOut
 
 
 class ListComments:

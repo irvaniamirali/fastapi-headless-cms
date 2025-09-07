@@ -1,7 +1,7 @@
 from app.core.exceptions.app_exceptions import (
+    ConflictException,
     NotFoundException,
     PermissionDeniedException,
-    ConflictException,
 )
 
 from ..repositories import CommentRepositoryInterface

@@ -1,13 +1,13 @@
 from app.core.exceptions.app_exceptions import (
+    ConflictException,
     NotFoundException,
     PermissionDeniedException,
-    ConflictException,
     ValidationException,
 )
 
+from ..models import Comment
 from ..repositories import CommentRepositoryInterface
 from ..schemas import CommentCreate, CommentOut
-from ..models import Comment
 
 
 class CreateComment:
@@ -68,7 +68,7 @@ class CreateComment:
             parent_id=data.parent_id,
         )
 
-        created = await self.comment_repository.create(new_comment)
+        created: Comment = await self.comment_repository.create(new_comment)
 
         return CommentOut(
             id=created.id,

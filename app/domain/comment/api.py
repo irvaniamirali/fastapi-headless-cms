@@ -5,13 +5,13 @@ from fastapi import APIRouter, Depends, Path, Query, status
 from app.domain.auth.depends import get_current_authenticated_user
 from app.domain.user.schemas import UserRead
 
-from .repositories import CommentRepositoryInterface
 from .depends import get_comment_repository
-from .schemas import CommentCreate, CommentUpdate, CommentOut, CommentList
+from .repositories import CommentRepositoryInterface
+from .schemas import CommentCreate, CommentList, CommentOut, CommentUpdate
 from .usecases.create_comment import CreateComment
-from .usecases.update_comment import UpdateComment
 from .usecases.delete_comment import DeleteComment
 from .usecases.list_comments import ListComments
+from .usecases.update_comment import UpdateComment
 
 router = APIRouter(prefix="/comments", tags=["Comments"])
 
