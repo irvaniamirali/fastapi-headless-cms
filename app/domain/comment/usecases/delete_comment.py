@@ -4,6 +4,7 @@ from app.core.exceptions.app_exceptions import (
     PermissionDeniedException,
 )
 
+from ..models import Comment
 from ..repositories import CommentRepositoryInterface
 
 
@@ -15,18 +16,18 @@ class DeleteComment:
     and marks the comment as deleted.
     """
 
-    def __init__(self, comment_repository: CommentRepositoryInterface):
+    def __init__(self, comment_repository: CommentRepositoryInterface) -> None:
         self.comment_repository = comment_repository
 
     async def execute(
-        self, *, comment_id: int, actor_id: int, is_superuser: bool = False
+        self, *, comment_id: int, requesting_user_id: int, is_superuser: bool = False
     ) -> None:
         """
         Soft delete a comment by ID.
 
         Args:
             comment_id (int): The ID of the comment to delete.
-            actor_id (int): The ID of the user attempting the deletion.
+            requesting_user_id (int): The ID of the user attempting the deletion.
             is_superuser (bool): Whether the actor has superuser privileges.
 
         Raises:
@@ -35,15 +36,17 @@ class DeleteComment:
             ConflictException: If the comment is already deleted.
         """
 
-        comment = await self.comment_repository.get_by_id(comment_id)
+        existing_comment: Comment | None = (
+            await self.comment_repository.get_comment_by_id(comment_id)
+        )
 
-        if not comment:
+        if not existing_comment:
             raise NotFoundException("Comment not found")
 
-        if comment.is_deleted:
+        if existing_comment.is_deleted:
             raise ConflictException("Comment is already deleted")
 
-        if comment.author_id != actor_id and not is_superuser:
+        if existing_comment.author_id != requesting_user_id and not is_superuser:
             raise PermissionDeniedException("Not allowed to delete this comment")
 
-        await self.comment_repository.delete(comment)
+        await self.comment_repository.soft_delete_comment(existing_comment)
