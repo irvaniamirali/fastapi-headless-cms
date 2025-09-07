@@ -146,7 +146,7 @@ async def create_comment_fixture(db_session, create_post_fixture, registered_use
         comment = Comment(
             post_id=post.id, author_id=author.id, content=content, parent_id=parent_id
         )
-        created_comment = await comment_repository.create(comment)
+        created_comment = await comment_repository.create_comment(comment)
         return created_comment
 
     return _create_comment
