@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.database.session import get_session
 
-from .repositories import UserRepositoryInterface, UserRepository
 from .models import User
+from .repositories import UserRepository, UserRepositoryInterface
 
 
 async def get_user_repository(

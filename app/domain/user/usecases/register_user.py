@@ -4,9 +4,9 @@ from app.core.exceptions.app_exceptions import (
 )
 from app.utils.security import hash_password
 
+from ..models import User
 from ..repositories import UserRepositoryInterface
 from ..schemas import UserCreate, UserRead
-from ..models import User
 
 
 class RegisterUser:

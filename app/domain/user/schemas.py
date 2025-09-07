@@ -1,7 +1,6 @@
-from typing import TypeAlias, Annotated
+from typing import Annotated, TypeAlias
 
-from pydantic import BaseModel, EmailStr, ConfigDict, Field, AfterValidator
-
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
 
 Email: TypeAlias = Annotated[EmailStr, AfterValidator(str.lower)]
 
