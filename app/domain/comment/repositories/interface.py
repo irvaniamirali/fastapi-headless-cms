@@ -5,24 +5,28 @@ from ..models import Comment
 
 class CommentRepositoryInterface(ABC):
     @abstractmethod
-    async def create(self, comment: Comment) -> Comment: ...
+    async def create_comment(self, comment: Comment) -> Comment:
+        pass
 
     @abstractmethod
-    async def get_by_id(self, comment_id: int) -> Comment | None: ...
+    async def get_comment_by_id(self, comment_id: int) -> Comment | None:
+        pass
 
-    @abstractmethod
-    async def list_by_post(
+    async def list_comments_by_post_id(
         self, post_id: int, skip: int = 0, limit: int = 20
-    ) -> tuple[list[Comment], int]: ...
+    ) -> tuple[list[Comment], int]:
+        pass
 
     @abstractmethod
-    async def update(self, comment: Comment, content: str) -> Comment: ...
+    async def update_comment_content(
+        self, comment: Comment, new_content: str
+    ) -> Comment:
+        pass
 
     @abstractmethod
-    async def delete(self, comment: Comment) -> None: ...
+    async def soft_delete_comment(self, comment: Comment) -> None:
+        pass
 
     @abstractmethod
-    async def post_exists(self, post_id: int) -> bool: ...
-
-    @abstractmethod
-    async def get_comment_depth(self, comment_id: int) -> int: ...
+    async def get_comment_nesting_depth(self, comment_id: int) -> int:
+        pass
