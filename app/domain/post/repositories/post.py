@@ -53,6 +53,10 @@ class PostRepository(PostRepositoryInterface):
             i += 1
             candidate = f"{base}-{i}"
 
+    async def post_exists(self, post_id: int) -> bool:
+        result = await self.session.execute(select(Post.id).where(Post.id == post_id))
+        return result.scalar_one_or_none() is not None
+
     async def create(
         self,
         *,
