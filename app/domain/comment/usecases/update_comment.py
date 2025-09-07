@@ -16,15 +16,15 @@ class UpdateComment:
     Ensures the comment exists, is not deleted, and the actor has permission.
     """
 
-    def __init__(self, comment_repository: CommentRepositoryInterface):
+    def __init__(self, comment_repository: CommentRepositoryInterface) -> None:
         self.comment_repository = comment_repository
 
     async def execute(
         self,
         *,
         comment_id: int,
-        content: str,
-        actor_id: int,
+        new_content: str,
+        requesting_user_id: int,
         is_superuser: bool = False,
     ) -> CommentOut:
         """
@@ -32,8 +32,8 @@ class UpdateComment:
 
         Args:
             comment_id (int): ID of the comment to update.
-            content (str): New content for the comment.
-            actor_id (int): ID of the user attempting the update.
+            new_content (str): New content for the comment.
+            requesting_user_id (int): ID of the user attempting the update.
             is_superuser (bool): Whether the actor has superuser privileges.
 
         Raises:
@@ -45,17 +45,21 @@ class UpdateComment:
             CommentOut: The updated comment as an output schema.
         """
 
-        comment = await self.comment_repository.get_by_id(comment_id)
+        existing_comment: Comment | None = (
+            await self.comment_repository.get_comment_by_id(comment_id)
+        )
 
-        if not comment:
+        if not existing_comment:
             raise NotFoundException("Comment not found")
 
-        if comment.is_deleted:
+        if existing_comment.is_deleted:
             raise ConflictException("Cannot edit a deleted comment")
 
-        if comment.author_id != actor_id and not is_superuser:
+        if existing_comment.author_id != requesting_user_id and not is_superuser:
             raise PermissionDeniedException("Not allowed to edit this comment")
 
-        updated: Comment = await self.comment_repository.update(comment, content)
+        updated_comment: Comment = await self.comment_repository.update_comment_content(
+            existing_comment, new_content
+        )
 
-        return CommentOut.model_validate(updated)
+        return CommentOut.model_validate(updated_comment)

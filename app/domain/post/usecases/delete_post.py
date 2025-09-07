@@ -17,7 +17,7 @@ class DeletePost:
       - Delegates the deletion operation to the repository.
 
     Args:
-        repo (PostRepositoryInterface): Repository abstraction for posts.
+        post_repository (PostRepositoryInterface): Repository abstraction for posts.
 
     Methods:
         execute(post_id, actor_id, is_superuser):

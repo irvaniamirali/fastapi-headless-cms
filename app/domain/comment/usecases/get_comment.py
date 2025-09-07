@@ -1,5 +1,6 @@
 from app.core.exceptions.app_exceptions import NotFoundException
 
+from ..models import Comment
 from ..repositories import CommentRepositoryInterface
 from ..schemas import CommentOut
 
@@ -10,7 +11,7 @@ class GetComment:
     Ensures the comment exists and is not deleted.
     """
 
-    def __init__(self, comment_repository: CommentRepositoryInterface):
+    def __init__(self, comment_repository: CommentRepositoryInterface) -> None:
         self.comment_repository = comment_repository
 
     async def execute(self, *, comment_id: int) -> CommentOut:
@@ -27,8 +28,11 @@ class GetComment:
             CommentOut: The retrieved comment as an output schema.
         """
 
-        comment = await self.comment_repository.get_by_id(comment_id)
+        existing_comment: Comment | None = (
+            await self.comment_repository.get_comment_by_id(comment_id)
+        )
 
-        if not comment or comment.is_deleted:
+        if not existing_comment or existing_comment.is_deleted:
             raise NotFoundException("Comment not found")
-        return CommentOut.model_validate(comment)
+
+        return CommentOut.model_validate(existing_comment)

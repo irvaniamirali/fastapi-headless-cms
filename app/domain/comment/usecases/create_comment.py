@@ -4,6 +4,7 @@ from app.core.exceptions.app_exceptions import (
     PermissionDeniedException,
     ValidationException,
 )
+from app.domain.post.repositories import PostRepositoryInterface
 
 from ..models import Comment
 from ..repositories import CommentRepositoryInterface
@@ -18,15 +19,22 @@ class CreateComment:
     constraints (same post, not deleted, depth limit), and persists the comment.
     """
 
-    def __init__(self, comment_repository: CommentRepositoryInterface):
+    def __init__(
+        self,
+        comment_repository: CommentRepositoryInterface,
+        post_repository: PostRepositoryInterface,
+    ):
         self.comment_repository = comment_repository
+        self.post_repository = post_repository
 
-    async def execute(self, *, data: CommentCreate, author_id: int) -> CommentOut:
+    async def execute(
+        self, *, comment_data: CommentCreate, author_id: int
+    ) -> CommentOut:
         """
         Create a new comment for a given post.
 
         Args:
-            data (CommentCreate): Input data for the new comment.
+            comment_data (CommentCreate): Input data for the new comment.
             author_id (int): ID of the author creating the comment.
 
         Raises:
@@ -39,42 +47,50 @@ class CreateComment:
             CommentOut: The created comment as an output schema.
         """
 
-        post_exists = await self.comment_repository.post_exists(data.post_id)
+        post_exists = await self.post_repository.post_exists(comment_data.post_id)
 
         if not post_exists:
             raise NotFoundException("Post not found")
 
-        if data.parent_id:
-            parent_comment = await self.comment_repository.get_by_id(data.parent_id)
-            if not parent_comment:
+        if comment_data.parent_id:
+            existing_parent_comment = await self.comment_repository.get_comment_by_id(
+                comment_data.parent_id
+            )
+            if not existing_parent_comment:
                 raise NotFoundException("Parent comment not found")
 
-            if parent_comment.post_id != data.post_id:
+            if existing_parent_comment.post_id != comment_data.post_id:
                 raise PermissionDeniedException(
                     "Parent comment belongs to a different post"
                 )
 
-            if parent_comment.is_deleted:
+            if existing_parent_comment.is_deleted:
                 raise ConflictException("Cannot reply to a deleted comment")
 
-            depth = await self.comment_repository.get_comment_depth(data.parent_id)
-            if depth >= 2:
+            parent_comment_depth = (
+                await self.comment_repository.get_comment_nesting_depth(
+                    comment_data.parent_id
+                )
+            )
+            if parent_comment_depth >= 2:
                 raise ValidationException("Maximum reply depth reached")
 
-        new_comment = Comment(
-            post_id=data.post_id,
+        new_comment_entity = Comment(
+            post_id=comment_data.post_id,
             author_id=author_id,
-            content=data.content.strip(),
-            parent_id=data.parent_id,
+            content=comment_data.content.strip(),
+            parent_id=comment_data.parent_id,
         )
 
-        created: Comment = await self.comment_repository.create(new_comment)
+        created_comment: Comment = await self.comment_repository.create_comment(
+            new_comment_entity
+        )
 
         return CommentOut(
-            id=created.id,
-            post_id=created.post_id,
-            author_id=created.author_id,
-            content=created.content,
-            parent_id=created.parent_id,
+            id=created_comment.id,
+            post_id=created_comment.post_id,
+            author_id=created_comment.author_id,
+            content=created_comment.content,
+            parent_id=created_comment.parent_id,
             replies=[],
         )

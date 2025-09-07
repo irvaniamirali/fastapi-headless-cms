@@ -1,23 +1,32 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, func
-from sqlalchemy.orm import relationship
+from typing import TYPE_CHECKING
+
+from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database.base import Base
+
+if TYPE_CHECKING:
+    from app.domain.comment.models import Comment
+    from app.domain.user.models import User
 
 
 class Post(Base):
     __tablename__ = "posts"
 
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(255), nullable=False)
-    slug = Column(String(255), unique=True, nullable=False)
-    content = Column(Text, nullable=False)
-    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    comments = relationship(
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    slug: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, default=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(
+        DateTime, default=func.now(), onupdate=func.now()
+    )
+
+    comments: Mapped[list["Comment"]] = relationship(
         "Comment", back_populates="post", cascade="all, delete-orphan"
     )
-    author = relationship("User", back_populates="posts")
+    author: Mapped["User"] = relationship("User", back_populates="posts")
 
-    def __repr__(self) -> str:  # pragma: no cover
+    def __repr__(self) -> str:
         return f"<Post id={self.id} title={self.title!r}>"

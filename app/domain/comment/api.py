@@ -3,6 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Path, Query, status
 
 from app.domain.auth.depends import get_current_authenticated_user
+from app.domain.post.depends import get_post_repository
+from app.domain.post.repositories import PostRepositoryInterface
 from app.domain.user.schemas import UserRead
 
 from .depends import get_comment_repository
@@ -19,7 +21,6 @@ router = APIRouter(prefix="/comments", tags=["Comments"])
 @router.post(
     "/",
     response_model=CommentOut,
-    response_model_exclude_none=True,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new comment",
     responses={
@@ -32,10 +33,13 @@ router = APIRouter(prefix="/comments", tags=["Comments"])
 async def create_comment(
     comment_schema: CommentCreate,
     current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
-    comment_repository: CommentRepositoryInterface = Depends(get_comment_repository),
+    comment_repository: Annotated[
+        CommentRepositoryInterface, Depends(get_comment_repository)
+    ],
+    post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
 ):
-    return await CreateComment(comment_repository).execute(
-        data=comment_schema, author_id=current_user.id
+    return await CreateComment(comment_repository, post_repository).execute(
+        comment_data=comment_schema, author_id=current_user.id
     )
 
 
@@ -43,7 +47,6 @@ async def create_comment(
     "/post/{post_id}",
     status_code=status.HTTP_200_OK,
     response_model=CommentList,
-    response_model_exclude_none=True,
     summary="List comments for a post",
     responses={
         200: {"description": "List of comments retrieved successfully"},
@@ -54,6 +57,7 @@ async def list_comments(
     comment_repository: Annotated[
         CommentRepositoryInterface, Depends(get_comment_repository)
     ],
+    post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
     post_id: Annotated[int, Path(..., ge=1, description="ID of the post")],
     skip: Annotated[
         int, Query(ge=0, description="Number of comments to skip for pagination")
@@ -62,7 +66,7 @@ async def list_comments(
         int, Query(ge=1, le=100, description="Maximum number of comments to return")
     ] = 20,
 ):
-    return await ListComments(comment_repository).execute(
+    return await ListComments(comment_repository, post_repository).execute(
         post_id=post_id, skip=skip, limit=limit
     )
 
@@ -71,7 +75,6 @@ async def list_comments(
     "/{comment_id}",
     status_code=status.HTTP_200_OK,
     response_model=CommentOut,
-    response_model_exclude_none=True,
     summary="Update a comment",
     responses={
         200: {"description": "Comment successfully updated"},
@@ -93,8 +96,8 @@ async def update_comment(
 ):
     return await UpdateComment(comment_repository).execute(
         comment_id=comment_id,
-        content=comment_schema.content,
-        actor_id=current_user.id,
+        new_content=comment_schema.content,
+        requesting_user_id=current_user.id,
         is_superuser=current_user.is_superuser,
     )
 
@@ -102,7 +105,6 @@ async def update_comment(
 @router.delete(
     "/{comment_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    response_model_exclude_none=True,
     summary="Delete a comment",
     responses={
         204: {"description": "Comment successfully deleted"},
@@ -122,7 +124,7 @@ async def delete_comment(
 ):
     await DeleteComment(comment_repository).execute(
         comment_id=comment_id,
-        actor_id=current_user.id,
+        requesting_user_id=current_user.id,
         is_superuser=current_user.is_superuser,
     )
     return None
