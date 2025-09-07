@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, Query, status
 from app.domain.auth.depends import get_current_authenticated_user
 from app.domain.user.schemas import UserRead
 
-from .repositories import PostRepositoryInterface
 from .depends import get_post_repository
+from .repositories import PostRepositoryInterface
 from .schemas import PostCreate, PostList, PostOut, PostUpdate
 from .usecases.create_post import CreatePost
 from .usecases.delete_post import DeletePost

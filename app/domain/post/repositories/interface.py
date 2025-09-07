@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Sequence
 
 from ..models import Post
 
@@ -13,7 +14,7 @@ class PostRepositoryInterface(ABC):
     @abstractmethod
     async def list(
         self, *, skip: int = 0, limit: int = 20, search: str | None = None
-    ) -> tuple[list[Post], int]: ...
+    ) -> tuple[Sequence[Post], int]: ...
 
     @abstractmethod
     async def create(

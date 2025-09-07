@@ -1,10 +1,10 @@
 from app.core.exceptions.app_exceptions import (
-    PermissionDeniedException,
     NotFoundException,
+    PermissionDeniedException,
 )
 
 from ..repositories import PostRepositoryInterface
-from ..schemas import PostUpdate, PostOut
+from ..schemas import PostOut, PostUpdate
 
 
 class UpdatePost:

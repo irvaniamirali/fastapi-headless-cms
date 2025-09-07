@@ -1,9 +1,11 @@
-from sqlalchemy import select, func
+from typing import Sequence
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .interface import PostRepositoryInterface
 from ..models import Post
 from ..utils import slugify
+from .interface import PostRepositoryInterface
 
 
 class PostRepository(PostRepositoryInterface):
@@ -20,7 +22,7 @@ class PostRepository(PostRepositoryInterface):
 
     async def list(
         self, *, skip: int = 0, limit: int = 20, search: str | None = None
-    ) -> tuple[list[Post], int]:
+    ) -> tuple[Sequence[Post], int]:
         stmt = select(Post)
         count_stmt = select(func.count()).select_from(Post)
 
@@ -76,12 +78,12 @@ class PostRepository(PostRepositoryInterface):
         slug: str | None = None,
     ) -> Post:
         if title is not None:
-            post.title = title
+            post.title = title  # type: ignore[assignment]
         if content is not None:
-            post.content = content
+            post.content = content  # type: ignore[assignment]
         if slug is not None:
-            base_slug = slugify(slug or post.title)
-            post.slug = await self._ensure_unique_slug(base_slug)
+            base_slug = slugify(slug or post.title)  # type: ignore[arg-type]
+            post.slug = await self._ensure_unique_slug(base_slug)  # type: ignore[assignment]
 
         self.session.add(post)
         await self.session.commit()

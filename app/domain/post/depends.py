@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.database.session import get_session
 
-from .repositories import PostRepositoryInterface, PostRepository
+from .repositories import PostRepository, PostRepositoryInterface
 
 
 def get_post_repository(

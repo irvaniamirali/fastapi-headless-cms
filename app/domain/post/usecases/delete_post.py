@@ -1,6 +1,6 @@
 from app.core.exceptions.app_exceptions import (
-    PermissionDeniedException,
     NotFoundException,
+    PermissionDeniedException,
 )
 
 from ..repositories import PostRepositoryInterface
