@@ -1,8 +1,8 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.utils.jwt import create_access_token
 from app.domain.comment.repositories.comment import CommentRepository
+from app.utils.jwt import create_access_token
 
 
 @pytest.mark.asyncio
