@@ -1,6 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, status
+import orjson
+from fastapi import APIRouter, Request, Response, Depends, Path, Query, status
+
+from app.common.http_responses import SuccessResponse, SuccessCodes
+from app.common.http_responses.success_result import SuccessResult
 
 from app.domain.auth.depends import get_current_authenticated_user
 from app.domain.post.depends import get_post_repository
@@ -20,7 +24,7 @@ router = APIRouter(prefix="/comments", tags=["Comments"])
 
 @router.post(
     "/",
-    response_model=CommentOut,
+    response_model=SuccessResponse[CommentOut],
     status_code=status.HTTP_201_CREATED,
     summary="Create a new comment",
     responses={
@@ -31,6 +35,7 @@ router = APIRouter(prefix="/comments", tags=["Comments"])
     },
 )
 async def create_comment(
+    request: Request,
     comment_schema: CommentCreate,
     current_user: Annotated[UserRead, Depends(get_current_authenticated_user)],
     comment_repository: Annotated[
@@ -38,15 +43,22 @@ async def create_comment(
     ],
     post_repository: Annotated[PostRepositoryInterface, Depends(get_post_repository)],
 ):
-    return await CreateComment(comment_repository, post_repository).execute(
+    created_comment = await CreateComment(comment_repository, post_repository).execute(
         comment_data=comment_schema, author_id=current_user.id
     )
+    result = SuccessResult[CommentOut].create(
+        code=SuccessCodes.SUCCESS,
+        message="Comment created successfully",
+        status_code=status.HTTP_201_CREATED,
+        data=created_comment
+    )
+    return result.to_json_response(request)
 
 
 @router.get(
     "/post/{post_id}",
     status_code=status.HTTP_200_OK,
-    response_model=CommentList,
+    response_model=SuccessResponse[CommentList],
     summary="List comments for a post",
     responses={
         200: {"description": "List of comments retrieved successfully"},
@@ -54,6 +66,7 @@ async def create_comment(
     },
 )
 async def list_comments(
+    request: Request,
     comment_repository: Annotated[
         CommentRepositoryInterface, Depends(get_comment_repository)
     ],
@@ -66,15 +79,22 @@ async def list_comments(
         int, Query(ge=1, le=100, description="Maximum number of comments to return")
     ] = 20,
 ):
-    return await ListComments(comment_repository, post_repository).execute(
+    comments_list = await ListComments(comment_repository, post_repository).execute(
         post_id=post_id, skip=skip, limit=limit
     )
+    result = SuccessResult[CommentList].create(
+        code=SuccessCodes.SUCCESS,
+        message="Comments retrieved successfully",
+        status_code=status.HTTP_200_OK,
+        data=comments_list
+    )
+    return result.to_json_response(request)
 
 
 @router.patch(
     "/{comment_id}",
     status_code=status.HTTP_200_OK,
-    response_model=CommentOut,
+    response_model=SuccessResponse[CommentOut],
     summary="Update a comment",
     responses={
         200: {"description": "Comment successfully updated"},
@@ -85,6 +105,7 @@ async def list_comments(
     },
 )
 async def update_comment(
+    request: Request,
     comment_schema: CommentUpdate,
     comment_id: Annotated[
         int, Path(..., ge=1, description="ID of the comment to update")
@@ -94,12 +115,19 @@ async def update_comment(
         CommentRepositoryInterface, Depends(get_comment_repository)
     ],
 ):
-    return await UpdateComment(comment_repository).execute(
+    updated_comment = await UpdateComment(comment_repository).execute(
         comment_id=comment_id,
         new_content=comment_schema.content,
         requesting_user_id=current_user.id,
         is_superuser=current_user.is_superuser,
     )
+    result = SuccessResult[CommentOut].create(
+        code=SuccessCodes.SUCCESS,
+        message="Comment updated successfully",
+        status_code=status.HTTP_200_OK,
+        data=updated_comment
+    )
+    return result.to_json_response(request)
 
 
 @router.delete(
@@ -114,6 +142,7 @@ async def update_comment(
     },
 )
 async def delete_comment(
+    response: Response,
     comment_id: Annotated[
         int, Path(..., ge=1, description="ID of the comment to delete")
     ],
@@ -122,9 +151,10 @@ async def delete_comment(
         CommentRepositoryInterface, Depends(get_comment_repository)
     ],
 ):
-    await DeleteComment(comment_repository).execute(
+    deleted_comment = await DeleteComment(comment_repository).execute(
         comment_id=comment_id,
         requesting_user_id=current_user.id,
         is_superuser=current_user.is_superuser,
     )
+    response.headers["X-Deleted-Comment"] = orjson.dumps(deleted_comment.model_dump()).decode()
     return None
