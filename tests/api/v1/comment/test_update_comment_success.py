@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.jwt import create_access_token
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -16,4 +16,4 @@ async def test_update_comment_success(
     )
     assert response.status_code == 200
     updated_comment = response.json()
-    assert updated_comment["content"] == update_data["content"]
+    assert updated_comment["data"]["content"] == update_data["content"]
