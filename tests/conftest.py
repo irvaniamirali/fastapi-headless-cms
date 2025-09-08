@@ -70,9 +70,10 @@ async def registered_user(db_session):
     """
     Fixture to create a registered user with a unique email for each test.
     """
+
     unique_email = f"test_post_user_{uuid.uuid4()}@example.com"
     user_data = {"email": unique_email, "password": "StrongPassword123!"}
-    user_repository = UserRepository(db_session, User)
+    user_repository = UserRepository(db_session)
     user_schema = UserCreate(**user_data)
     user = await RegisterUser(user_repository).execute(user_schema)
     return user
@@ -85,7 +86,7 @@ async def registered_user2(db_session):
     """
     unique_email = f"test_post_user2_{uuid.uuid4()}@example.com"
     user_data = {"email": unique_email, "password": "StrongPassword123!"}
-    user_repository = UserRepository(db_session, User)
+    user_repository = UserRepository(db_session)
     user_schema = UserCreate(**user_data)
     user = await RegisterUser(user_repository).execute(user_schema)
     return user
@@ -98,7 +99,7 @@ async def registered_superuser(db_session):
     """
     unique_email = f"superuser_{uuid.uuid4()}@example.com"
     user_data = {"email": unique_email, "password": "StrongPassword123!"}
-    user_repository = UserRepository(db_session, User)
+    user_repository = UserRepository(db_session)
     user_schema = UserCreate(**user_data)
     user = await RegisterUser(user_repository).execute(user_schema)
     user.is_superuser = True
