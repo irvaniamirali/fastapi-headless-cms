@@ -1,10 +1,10 @@
-from app.core.exceptions.app_exceptions import (
+from app.common.exceptions import (
     DatabaseOperationException,
     InvalidCredentialsException,
 )
 from app.domain.user.repositories import UserRepositoryInterface
-from app.utils.jwt import create_access_token
-from app.utils.security import verify_password
+from app.utils.auth.jwt import create_access_token
+from app.utils.auth.security import verify_password
 
 from ..schemas import Token
 
