@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.jwt import create_access_token
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -17,4 +17,4 @@ async def test_update_post_by_different_user(
     )
 
     assert response.status_code == 403
-    assert response.json()["error"]["message"] == "Not allowed to edit this post"
+    assert response.json()["detail"]["message"] == "You are not allowed to edit this post."
