@@ -1,7 +1,7 @@
 import pytest
 
-from app.core.exceptions.app_exceptions import ErrorCode
-from app.utils.jwt import create_access_token
+from app.common.http_responses.error_response import ErrorCodes
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -28,5 +28,5 @@ async def test_create_post_with_duplicate_slug(http_client, registered_user):
 
     assert response2.status_code == 409
     post_data = response2.json()
-    assert post_data["error"]["code"] == ErrorCode.CONFLICT
-    assert "already in use" in post_data["error"]["message"]
+    assert post_data["detail"]["code"] == ErrorCodes.DUPLICATE_ENTRY
+    assert "already exists." in post_data["detail"]["message"]
