@@ -6,14 +6,13 @@ from app.domain.user.models import User
 
 class UserRepositoryInterface(ABC):
     @abstractmethod
-    async def insert(self, user: User) -> User:
+    async def create_user(self, email: str, password: str) -> User:
         pass
 
     @abstractmethod
-    async def get_by_email(self, email: str) -> User | None: ...
+    async def get_by_email(self, email: str) -> User | None:
+        pass
 
     @abstractmethod
-    async def create(self, *, email: str, hashed_password: str) -> User: ...
-
-    @abstractmethod
-    async def exists(self, field: str, value: Any) -> bool: ...
+    async def exists(self, field: str, value: Any) -> bool:
+        pass
