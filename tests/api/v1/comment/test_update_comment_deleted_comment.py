@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.comment.repositories.comment import CommentRepository
-from app.utils.jwt import create_access_token
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -24,4 +24,4 @@ async def test_update_comment_deleted_comment(
     )
 
     assert response.status_code == 404
-    assert response.json()["error"]["message"] == "Comment not found"
+    assert response.json()["detail"]["message"] == f"Comment with id {comment.id} not found."
