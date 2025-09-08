@@ -1,10 +1,11 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
 from app.core.config import settings
+from app.common.exceptions import InvalidCredentialsException
 from app.domain.user.depends import get_user_repository
 from app.domain.user.models import User
 from app.domain.user.repositories import UserRepositoryInterface
@@ -18,11 +19,10 @@ async def get_current_authenticated_user(
     user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)],
     access_token: str = Depends(oauth2_scheme),
 ) -> User:
-    unauthorized_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate authentication credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+    unauthorized_exception = InvalidCredentialsException(
+        message="Could not validate authentication credentials"
     )
+    unauthorized_exception.headers = {"WWW-Authenticate": "Bearer"}
 
     try:
         decoded_payload = jwt.decode(
