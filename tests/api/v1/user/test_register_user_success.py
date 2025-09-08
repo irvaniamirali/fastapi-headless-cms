@@ -11,6 +11,6 @@ async def test_register_user_success(http_client):
         json={"email": unique_email, "password": "StrongPassword123!"},
     )
     assert response.status_code == 201
-    data = response.json()
+    data = response.json()["data"]
     assert "email" in data
     assert data["email"] == unique_email
