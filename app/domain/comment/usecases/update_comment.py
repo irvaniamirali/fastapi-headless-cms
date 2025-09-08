@@ -1,8 +1,4 @@
-from app.core.exceptions.app_exceptions import (
-    ConflictException,
-    NotFoundException,
-    PermissionDeniedException,
-)
+from app.common.exceptions import EntityNotFoundException, PermissionDeniedException
 
 from ..models import Comment
 from ..repositories import CommentRepositoryInterface
@@ -10,11 +6,6 @@ from ..schemas import CommentOut
 
 
 class UpdateComment:
-    """
-    Use case for updating a comment's content.
-
-    Ensures the comment exists, is not deleted, and the actor has permission.
-    """
 
     def __init__(self, comment_repository: CommentRepositoryInterface) -> None:
         self.comment_repository = comment_repository
@@ -37,12 +28,15 @@ class UpdateComment:
             is_superuser (bool): Whether the actor has superuser privileges.
 
         Raises:
-            NotFoundException: If the comment does not exist.
-            ConflictException: If the comment is deleted.
-            PermissionDeniedException: If the actor is not allowed to edit.
+            NotFoundException: If the comment with the given ID does not exist.
+                Includes {"comment_id": comment_id} in exception data.
+            ConflictException: If the comment has been deleted.
+                Includes {"comment_id": comment_id} in exception data.
+            PermissionDeniedException: If the actor is neither the author nor a superuser.
+                Includes {"comment_id": comment_id, "requesting_user_id": requesting_user_id} in exception data.
 
         Returns:
-            CommentOut: The updated comment as an output schema.
+            CommentOut: The updated comment.
         """
 
         existing_comment: Comment | None = (
@@ -50,13 +44,22 @@ class UpdateComment:
         )
 
         if not existing_comment:
-            raise NotFoundException("Comment not found")
+            raise EntityNotFoundException(
+                message=f"Comment with id {comment_id} not found.",
+                data={"comment_id": comment_id},
+            )
 
         if existing_comment.is_deleted:
-            raise ConflictException("Cannot edit a deleted comment")
+            raise EntityNotFoundException(
+                message=f"Comment with id {comment_id} not found or deleted.",
+                data={"comment_id": comment_id},
+            )
 
         if existing_comment.author_id != requesting_user_id and not is_superuser:
-            raise PermissionDeniedException("Not allowed to edit this comment")
+            raise PermissionDeniedException(
+                message="You are not allowed to edit this comment.",
+                data={"comment_id": comment_id, "requesting_user_id": requesting_user_id},
+            )
 
         updated_comment: Comment = await self.comment_repository.update_comment_content(
             existing_comment, new_content
