@@ -1,39 +1,26 @@
-from app.core.exceptions.app_exceptions import (
-    ConflictException,
-    NotFoundException,
-    PermissionDeniedException,
-)
+from app.common.exceptions import EntityNotFoundException, PermissionDeniedException
 
 from ..models import Comment
+from ..schemas import CommentOut
 from ..repositories import CommentRepositoryInterface
 
 
 class DeleteComment:
-    """
-    Use case for deleting a comment (soft delete).
-
-    Ensures the comment exists, checks actor permissions,
-    and marks the comment as deleted.
-    """
 
     def __init__(self, comment_repository: CommentRepositoryInterface) -> None:
         self.comment_repository = comment_repository
 
     async def execute(
         self, *, comment_id: int, requesting_user_id: int, is_superuser: bool = False
-    ) -> None:
+    ) -> CommentOut:
         """
         Soft delete a comment by ID.
 
-        Args:
-            comment_id (int): The ID of the comment to delete.
-            requesting_user_id (int): The ID of the user attempting the deletion.
-            is_superuser (bool): Whether the actor has superuser privileges.
-
         Raises:
-            NotFoundException: If the comment does not exist.
-            PermissionDeniedException: If the actor is not allowed to delete it.
-            ConflictException: If the comment is already deleted.
+            EntityNotFoundException: If the comment with the given ID does not exist.
+            PermissionDeniedException:
+                - If the comment is already deleted.
+                - If the requesting user is neither the author nor a superuser.
         """
 
         existing_comment: Comment | None = (
@@ -41,12 +28,22 @@ class DeleteComment:
         )
 
         if not existing_comment:
-            raise NotFoundException("Comment not found")
+            raise EntityNotFoundException(
+                message=f"Comment with id {comment_id} was not found.",
+                data={"comment_id": comment_id},
+            )
 
         if existing_comment.is_deleted:
-            raise ConflictException("Comment is already deleted")
+            raise EntityNotFoundException(
+                message=f"Comment with id {comment_id} not found or deleted.",
+                data={"comment_id": comment_id},
+            )
 
         if existing_comment.author_id != requesting_user_id and not is_superuser:
-            raise PermissionDeniedException("Not allowed to delete this comment")
+            raise PermissionDeniedException(
+                message="You are not allowed to delete this comment.",
+                data={"comment_id": comment_id, "requesting_user_id": requesting_user_id},
+            )
 
         await self.comment_repository.soft_delete_comment(existing_comment)
+        return CommentOut.model_validate(existing_comment)
