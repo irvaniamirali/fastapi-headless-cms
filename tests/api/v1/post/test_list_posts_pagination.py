@@ -8,6 +8,6 @@ async def test_list_posts_pagination(http_client, create_post_fixture):
 
     response = await http_client.get("/v1/posts/?limit=10&skip=0")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["data"]
     assert data["total"] >= 30
     assert len(data["items"]) == 10
