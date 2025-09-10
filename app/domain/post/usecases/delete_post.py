@@ -1,6 +1,7 @@
-from app.common.exceptions import (
+from app.common.exceptions.app_exceptions import (
     EntityNotFoundException,
     PermissionDeniedException,
+    DatabaseOperationException,
 )
 
 from ..schemas import PostOut
@@ -32,9 +33,18 @@ class DeletePost:
                 Includes {"post_id": post_id} in exception data.
             PermissionDeniedException: If the actor is neither the author nor a superuser.
                 Includes {"post_id": post_id, "actor_id": actor_id} in exception data.
+            DatabaseOperationException: If a database operation fails during read or delete.
+                Includes {"post_id": post_id} in exception data.
         """
 
-        post = await self.post_repository.get_by_id(post_id)
+        try:
+            post = await self.post_repository.get_post_by_id(post_id)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="read",
+                message=f"Failed to get post with id {post_id}",
+                data={"post_id": post_id},
+            ) from e
 
         if not post:
             raise EntityNotFoundException(
@@ -48,5 +58,13 @@ class DeletePost:
                 data={"post_id": post_id, "actor_id": actor_id},
             )
 
-        await self.post_repository.delete(post=post)
+        try:
+            await self.post_repository.delete_post(post=post)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="delete",
+                message=f"Failed to delete post with id {post_id}",
+                data={"post_id": post_id},
+            ) from e
+
         return PostOut.model_validate(post)
