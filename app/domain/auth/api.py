@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Request, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.common.http_responses import SuccessResponse
+from app.common.http_responses.success_response import SuccessResponse
 from app.common.http_responses.success_result import SuccessResult, SuccessCodes
 from app.domain.auth.schemas import Token
 from app.domain.user.depends import get_user_repository
