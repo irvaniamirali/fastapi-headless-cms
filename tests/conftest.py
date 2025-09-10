@@ -9,7 +9,6 @@ from app.domain.comment.models import Comment
 from app.domain.comment.repositories import CommentRepository
 from app.domain.post.models import Post
 from app.domain.post.repositories import PostRepository
-from app.domain.user.models import User
 from app.domain.user.repositories import UserRepository
 from app.domain.user.schemas import UserCreate
 from app.domain.user.usecases.register_user import RegisterUser
@@ -121,7 +120,7 @@ async def create_post_fixture(db_session, registered_user):
         author=registered_user,
     ):
         post_repository = PostRepository(db_session)
-        post = await post_repository.create(
+        post = await post_repository.create_post(
             title=title, content=content, author_id=author.id
         )
         return post
