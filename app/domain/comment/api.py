@@ -3,7 +3,7 @@ from typing import Annotated
 import orjson
 from fastapi import APIRouter, Request, Response, Depends, Path, Query, status
 
-from app.common.http_responses import SuccessResponse, SuccessCodes
+from app.common.http_responses.success_response import SuccessResponse, SuccessCodes
 from app.common.http_responses.success_result import SuccessResult
 
 from app.domain.auth.depends import get_current_authenticated_user
