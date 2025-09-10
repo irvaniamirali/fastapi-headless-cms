@@ -1,4 +1,4 @@
-from app.common.exceptions import DuplicateEntryException
+from app.common.exceptions.app_exceptions import DuplicateEntryException, DatabaseOperationException
 
 from ..repositories import PostRepositoryInterface
 from ..schemas import PostCreate, PostOut
@@ -21,6 +21,7 @@ class CreatePost:
         Raises:
             DuplicateEntryException: If the slug is already in use.
                 Includes {"slug": slug} in exception data.
+            DatabaseOperationException: If a database operation fails during create.
 
         Returns:
             PostOut: The created post.
@@ -29,11 +30,19 @@ class CreatePost:
         create_data = data.model_dump(exclude_unset=True)
         slug = slugify(create_data["slug"] or create_data["title"])
 
-        if await self.post_repository.get_by_slug(slug):
+        if await self.post_repository.get_post_by_slug(slug):
             raise DuplicateEntryException(
                 field="slug", value=slug
             )
 
         create_data.update(slug=slug, author_id=author_id)
-        new_post = await self.post_repository.create(**create_data)
+
+        try:
+            new_post = await self.post_repository.create_post(**create_data)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="create",
+                message=str(e),
+            ) from e
+
         return PostOut.model_validate(new_post)
