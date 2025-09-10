@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from app.api.v1.endpoints import router
 from app.core.config import settings
-from app.common.exceptions import register_exception_handlers
+from app.common.exceptions.app_exceptions import register_exception_handlers
 from app.core.lifespan import lifespan
 from app.core.logging import setup_logging
 from app.middleware.registry import register_middlewares
