@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import Request, APIRouter, Depends, status
 
-from app.common.http_responses import SuccessResponse, SuccessCodes
+from app.common.http_responses.success_response import SuccessResponse, SuccessCodes
 from app.common.http_responses.success_result import SuccessResult
 
 from .depends import get_user_repository
