@@ -1,4 +1,8 @@
-from app.common.exceptions import EntityNotFoundException, PermissionDeniedException
+from app.common.exceptions.app_exceptions import (
+    EntityNotFoundException,
+    PermissionDeniedException,
+    DatabaseOperationException,
+)
 
 from ..models import Comment
 from ..repositories import CommentRepositoryInterface
@@ -28,20 +32,25 @@ class UpdateComment:
             is_superuser (bool): Whether the actor has superuser privileges.
 
         Raises:
-            NotFoundException: If the comment with the given ID does not exist.
-                Includes {"comment_id": comment_id} in exception data.
-            ConflictException: If the comment has been deleted.
+            EntityNotFoundException: If the comment with the given ID does not exist.
                 Includes {"comment_id": comment_id} in exception data.
             PermissionDeniedException: If the actor is neither the author nor a superuser.
                 Includes {"comment_id": comment_id, "requesting_user_id": requesting_user_id} in exception data.
+            DatabaseOperationException: If a database operation fails during read or update.
+                Includes {"comment_id": comment_id, "new_content": new_content} in exception data.
 
         Returns:
             CommentOut: The updated comment.
         """
 
-        existing_comment: Comment | None = (
-            await self.comment_repository.get_comment_by_id(comment_id)
-        )
+        try:
+            existing_comment: Comment | None = await self.comment_repository.get_comment_by_id(comment_id)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="read",
+                message=f"Failed to fetch comment with id {comment_id}",
+                data={"comment_id": comment_id},
+            ) from e
 
         if not existing_comment:
             raise EntityNotFoundException(
@@ -61,8 +70,15 @@ class UpdateComment:
                 data={"comment_id": comment_id, "requesting_user_id": requesting_user_id},
             )
 
-        updated_comment: Comment = await self.comment_repository.update_comment_content(
-            existing_comment, new_content
-        )
+        try:
+            updated_comment: Comment = await self.comment_repository.update_comment_content(
+                existing_comment, new_content
+            )
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="update",
+                message=f"Failed to update content of comment with id {comment_id}",
+                data={"comment_id": comment_id, "new_content": new_content},
+            ) from e
 
         return CommentOut.model_validate(updated_comment)
