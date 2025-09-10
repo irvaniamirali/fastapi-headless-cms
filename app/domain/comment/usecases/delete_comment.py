@@ -1,4 +1,8 @@
-from app.common.exceptions import EntityNotFoundException, PermissionDeniedException
+from app.common.exceptions.app_exceptions import (
+    EntityNotFoundException,
+    PermissionDeniedException,
+    DatabaseOperationException,
+)
 
 from ..models import Comment
 from ..schemas import CommentOut
@@ -16,16 +20,29 @@ class DeleteComment:
         """
         Soft delete a comment by ID.
 
+        Args:
+            comment_id (int): ID of the comment to delete.
+            requesting_user_id (int): ID of the user performing the deletion.
+            is_superuser (bool): Whether the user has superuser privileges.
+
         Raises:
-            EntityNotFoundException: If the comment with the given ID does not exist.
-            PermissionDeniedException:
-                - If the comment is already deleted.
-                - If the requesting user is neither the author nor a superuser.
+            EntityNotFoundException: If the comment with the given ID does not exist or is already deleted.
+            PermissionDeniedException: If the requesting user is neither the author nor a superuser.
+            DatabaseOperationException: If a database operation fails during read or delete.
+                Includes {"comment_id": comment_id} in exception data.
+
+        Returns:
+            CommentOut: The soft-deleted comment.
         """
 
-        existing_comment: Comment | None = (
-            await self.comment_repository.get_comment_by_id(comment_id)
-        )
+        try:
+            existing_comment: Comment | None = await self.comment_repository.get_comment_by_id(comment_id)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="read",
+                message=f"Failed to read comment with id {comment_id}",
+                data={"comment_id": comment_id},
+            ) from e
 
         if not existing_comment:
             raise EntityNotFoundException(
@@ -45,5 +62,13 @@ class DeleteComment:
                 data={"comment_id": comment_id, "requesting_user_id": requesting_user_id},
             )
 
-        await self.comment_repository.soft_delete_comment(existing_comment)
+        try:
+            await self.comment_repository.soft_delete_comment(existing_comment)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="delete",
+                message=f"Failed to soft delete comment with id {comment_id}",
+                data={"comment_id": comment_id},
+            ) from e
+
         return CommentOut.model_validate(existing_comment)
