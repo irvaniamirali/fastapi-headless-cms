@@ -1,4 +1,4 @@
-from app.common.exceptions import EntityNotFoundException
+from app.common.exceptions.app_exceptions import EntityNotFoundException, DatabaseOperationException
 from app.domain.post.repositories import PostRepositoryInterface
 
 from ..models import Comment
@@ -30,12 +30,21 @@ class ListComments:
         Raises:
             EntityNotFoundException: If the post with the given ID does not exist.
                 Includes {"post_id": post_id} in exception data.
+            DatabaseOperationException: If a database operation fails during read.
+                Includes {"post_id": post_id, "skip": skip, "limit": limit} in exception data.
 
         Returns:
             CommentList: Contains total count and list of CommentOut items.
         """
 
-        post_exists: bool = await self.post_repository.post_exists(post_id)
+        try:
+            post_exists: bool = await self.post_repository.post_exists(post_id)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="read",
+                message=f"Failed to check existence of post with id {post_id}",
+                data={"post_id": post_id},
+            ) from e
 
         if not post_exists:
             raise EntityNotFoundException(
@@ -43,13 +52,18 @@ class ListComments:
                 data={"post_id": post_id},
             )
 
-        comments: list[Comment]
-        total_comments_count: int
-        comments, total_comments_count = (
-            await self.comment_repository.list_comments_by_post_id(
+        try:
+            comments: list[Comment]
+            total_comments_count: int
+            comments, total_comments_count = await self.comment_repository.list_comments_by_post_id(
                 post_id, skip=skip, limit=limit
             )
-        )
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="read",
+                message=f"Failed to list comments for post with id {post_id}",
+                data={"post_id": post_id, "skip": skip, "limit": limit},
+            ) from e
 
         return CommentList(
             total=total_comments_count,
