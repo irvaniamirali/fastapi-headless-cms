@@ -1,7 +1,8 @@
-from app.common.exceptions import (
+from app.common.exceptions.app_exceptions import (
     EntityNotFoundException,
     PermissionDeniedException,
     ValidationException,
+    DatabaseOperationException,
 )
 from app.domain.post.repositories import PostRepositoryInterface
 
@@ -21,21 +22,37 @@ class CreateComment:
         self.post_repository = post_repository
 
     async def execute(
-        self, *, comment_data: CommentCreate, author_id: int
+        self,
+        *,
+        comment_data: CommentCreate,
+        author_id: int
     ) -> CommentOut:
         """
         Create a comment for the given post.
+
+        Args:
+            comment_data (CommentCreate): Data for the new comment.
+            author_id (int): ID of the user creating the comment.
 
         Raises:
             ValidationException: If content is empty or nesting depth exceeded.
             EntityNotFoundException: If the post or parent comment does not exist.
             PermissionDeniedException: If parent belongs to another post or is deleted.
+            DatabaseOperationException: If a database operation fails during read or create.
+                Includes relevant context such as post_id or parent_id in exception data.
 
         Returns:
             CommentOut: The created comment.
         """
 
-        post_exists = await self.post_repository.post_exists(comment_data.post_id)
+        try:
+            post_exists = await self.post_repository.post_exists(comment_data.post_id)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="read",
+                message=f"Failed to check existence of post with id {comment_data.post_id}",
+                data={"post_id": comment_data.post_id},
+            ) from e
 
         if not post_exists:
             raise EntityNotFoundException(
@@ -44,9 +61,17 @@ class CreateComment:
             )
 
         if comment_data.parent_id:
-            existing_parent_comment = await self.comment_repository.get_comment_by_id(
-                comment_data.parent_id
-            )
+            try:
+                existing_parent_comment = await self.comment_repository.get_comment_by_id(
+                    comment_data.parent_id
+                )
+            except Exception as e:
+                raise DatabaseOperationException(
+                    operation="read",
+                    message=f"Failed to get parent comment with id {comment_data.parent_id}",
+                    data={"parent_id": comment_data.parent_id},
+                ) from e
+
             if not existing_parent_comment:
                 raise EntityNotFoundException(
                     message=f"Parent comment with id {comment_data.parent_id} was not found.",
@@ -57,7 +82,7 @@ class CreateComment:
                 raise PermissionDeniedException(
                     message="Parent comment belongs to a different post",
                     data={
-                        "parent_id": existing_parent_comment.post_id,
+                        "parent_id": existing_parent_comment.id,
                         "post_id": comment_data.post_id,
                     }
                 )
@@ -68,11 +93,17 @@ class CreateComment:
                     data={"comment_id": comment_data.parent_id},
                 )
 
-            parent_comment_depth = (
-                await self.comment_repository.get_comment_nesting_depth(
+            try:
+                parent_comment_depth = await self.comment_repository.get_comment_nesting_depth(
                     comment_data.parent_id
                 )
-            )
+            except Exception as e:
+                raise DatabaseOperationException(
+                    operation="read",
+                    message=f"Failed to get nesting depth for comment id {comment_data.parent_id}",
+                    data={"parent_id": comment_data.parent_id},
+                ) from e
+
             if parent_comment_depth >= 2:
                 raise ValidationException(
                     message="Maximum reply depth reached",
@@ -86,9 +117,20 @@ class CreateComment:
             parent_id=comment_data.parent_id,
         )
 
-        created_comment: Comment = await self.comment_repository.create_comment(
-            new_comment_entity
-        )
+        try:
+            created_comment: Comment = await self.comment_repository.create_comment(
+                new_comment_entity
+            )
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="create",
+                message=f"Failed to create comment for post id {comment_data.post_id}",
+                data={
+                    "post_id": comment_data.post_id,
+                    "parent_id": comment_data.parent_id,
+                    "author_id": author_id,
+                },
+            ) from e
 
         return CommentOut(
             id=created_comment.id,
