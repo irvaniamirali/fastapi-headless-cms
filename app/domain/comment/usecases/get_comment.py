@@ -1,4 +1,4 @@
-from app.common.exceptions import EntityNotFoundException
+from app.common.exceptions.app_exceptions import EntityNotFoundException, DatabaseOperationException
 
 from ..models import Comment
 from ..repositories import CommentRepositoryInterface
@@ -19,15 +19,22 @@ class GetComment:
 
         Raises:
             EntityNotFoundException: If the comment does not exist or has been deleted.
-                The exception includes the comment_id in its data.
+                Includes {"comment_id": comment_id} in exception data.
+            DatabaseOperationException: If a database operation fails during read.
+                Includes {"comment_id": comment_id} in exception data.
 
         Returns:
             CommentOut: The retrieved comment.
         """
 
-        existing_comment: Comment | None = (
-            await self.comment_repository.get_comment_by_id(comment_id)
-        )
+        try:
+            existing_comment: Comment | None = await self.comment_repository.get_comment_by_id(comment_id)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="read",
+                message=f"Failed to fetch comment with id {comment_id}",
+                data={"comment_id": comment_id},
+            ) from e
 
         if not existing_comment or existing_comment.is_deleted:
             raise EntityNotFoundException(
