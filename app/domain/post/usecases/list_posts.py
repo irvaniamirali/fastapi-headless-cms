@@ -1,3 +1,5 @@
+from app.common.exceptions.app_exceptions import DatabaseOperationException, EntityNotFoundException
+
 from ..repositories import PostRepositoryInterface
 from ..schemas import PostList, PostOut
 
@@ -8,11 +10,11 @@ class ListPosts:
         self.post_repository = post_repository
 
     async def execute(
-        self,
-        *,
-        skip: int = 0,
-        limit: int = 20,
-        search: str | None = None,
+            self,
+            *,
+            skip: int = 0,
+            limit: int = 20,
+            search: str | None = None,
     ) -> PostList:
         """
         List posts with pagination and optional search.
@@ -25,14 +27,23 @@ class ListPosts:
         Raises:
             EntityNotFoundException: If no posts match the criteria.
                 Includes {"search": search, "skip": skip, "limit": limit} in exception data.
+            DatabaseOperationException: If a database operation fails during read.
+                Includes {"search": search, "skip": skip, "limit": limit} in exception data.
 
         Returns:
             PostList: Object containing total count and list of PostOut items.
         """
 
-        items, total = await self.post_repository.list(
-            skip=skip, limit=limit, search=search
-        )
+        try:
+            items, total = await self.post_repository.list_posts(
+                skip=skip, limit=limit, search=search
+            )
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="read",
+                message="Failed to list posts from database",
+                data={"search": search, "skip": skip, "limit": limit},
+            ) from e
 
         return PostList(
             total=total,
