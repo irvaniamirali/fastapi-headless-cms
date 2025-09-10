@@ -1,4 +1,4 @@
-from app.common.exceptions import (
+from app.common.exceptions.app_exceptions import (
     DuplicateEntryException,
     DatabaseOperationException,
 )
@@ -22,7 +22,7 @@ class RegisterUser:
 
         Raises:
             DuplicateEntryException: If the email is already registered.
-            DatabaseOperationException: If inserting the user into the repository fails.
+            DatabaseOperationException: If creating user fails.
 
         Returns:
             UserRead: The newly created user.
