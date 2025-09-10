@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
 from app.core.config import settings
-from app.common.exceptions import InvalidCredentialsException
+from app.common.exceptions.app_exceptions import InvalidCredentialsException
 from app.domain.user.depends import get_user_repository
 from app.domain.user.models import User
 from app.domain.user.repositories import UserRepositoryInterface
