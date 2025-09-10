@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.jwt import create_access_token
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -14,4 +14,4 @@ async def test_delete_post_by_different_user(
     response = await http_client.delete(f"/v1/posts/{post.id}", headers=headers)
 
     assert response.status_code == 403
-    assert response.json()["error"]["message"] == "Not allowed to delete this post"
+    assert response.json()["detail"]["message"] == "You are not allowed to delete this post."

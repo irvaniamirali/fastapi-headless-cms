@@ -1,6 +1,7 @@
 import pytest
 
-from app.utils.jwt import create_access_token
+from app.common.http_responses.error_response import ErrorCodes
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -20,5 +21,6 @@ async def test_create_reply_max_depth_reached(
         "parent_id": c3.id,
     }
     response = await http_client.post("/v1/comments/", json=data, headers=headers)
-    assert response.status_code == 422
-    assert response.json()["error"]["message"] == "Maximum reply depth reached"
+    assert response.status_code == 400
+    assert response.json()["detail"]["code"] == ErrorCodes.VALIDATION_ERROR
+    assert response.json()["detail"]["message"] == "Maximum reply depth reached"

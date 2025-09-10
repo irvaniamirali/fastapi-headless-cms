@@ -1,4 +1,4 @@
-from app.core.exceptions.app_exceptions import ConflictException, ValidationException
+from app.common.exceptions.app_exceptions import DuplicateEntryException, DatabaseOperationException
 
 from ..repositories import PostRepositoryInterface
 from ..schemas import PostCreate, PostOut
@@ -6,54 +6,43 @@ from ..utils import slugify
 
 
 class CreatePost:
-    """
-    Use case for creating a new post.
 
-    Business rules:
-      - A post must have non-empty title and content.
-      - Slug must be unique across all posts.
-      - If no slug is provided, it will be generated from the title.
-      - Slug and title are normalized before saving.
-      - Author ID is always enforced from the authenticated user.
-
-    Args:
-        repo (PostRepositoryInterface): Repository abstraction for posts.
-
-    Methods:
-        execute(data, author_id):
-            Create a new post owned by the given author.
-            Returns a PostOut object.
-    """
-
-    def __init__(self, repo: PostRepositoryInterface):
-        self.repo = repo
+    def __init__(self, post_repository: PostRepositoryInterface) -> None:
+        self.post_repository = post_repository
 
     async def execute(self, *, data: PostCreate, author_id: int) -> PostOut:
+        """
+        Create a new post.
+
+        Args:
+            data (PostCreate): Input data for the post.
+            author_id (int): ID of the author creating the post.
+
+        Raises:
+            DuplicateEntryException: If the slug is already in use.
+                Includes {"slug": slug} in exception data.
+            DatabaseOperationException: If a database operation fails during create.
+
+        Returns:
+            PostOut: The created post.
+        """
+
         create_data = data.model_dump(exclude_unset=True)
+        slug = slugify(create_data["slug"] or create_data["title"])
 
-        title = (create_data.get("title") or "").strip()
-        content = (create_data.get("content") or "").strip()
-        slug = (
-            (create_data.get("slug") or "").strip() if create_data.get("slug") else None
-        )
+        if await self.post_repository.get_post_by_slug(slug):
+            raise DuplicateEntryException(
+                field="slug", value=slug
+            )
 
-        if not title:
-            raise ValidationException("Title cannot be empty")
-        if not content:
-            raise ValidationException("Content cannot be empty")
+        create_data.update(slug=slug, author_id=author_id)
 
-        raw_slug: str = slug if slug is not None else title
-        slug = slugify(raw_slug)
+        try:
+            new_post = await self.post_repository.create_post(**create_data)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="create",
+                message=str(e),
+            ) from e
 
-        if await self.repo.get_by_slug(slug):
-            raise ConflictException(f"Slug '{slug}' is already in use")
-
-        create_data.update(
-            title=title,
-            content=content,
-            slug=slug,
-            author_id=author_id,
-        )
-
-        new_post = await self.repo.create(**create_data)
         return PostOut.model_validate(new_post)

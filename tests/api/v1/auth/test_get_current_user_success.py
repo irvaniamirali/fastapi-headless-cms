@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from app.utils.jwt import create_access_token
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -21,4 +21,4 @@ async def test_get_current_user_success(http_client):
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["email"] == unique_email
+    assert data["data"]["email"] == unique_email

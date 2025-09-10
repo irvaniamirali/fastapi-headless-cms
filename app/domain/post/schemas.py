@@ -10,18 +10,9 @@ class PostBase(BaseModel):
 
     @model_validator(mode="after")
     def strip_and_validate(cls, values):
-        title = values.title.strip() if values.title else None
-        content = values.content.strip() if values.content else None
-        slug = values.slug.strip() if values.slug else None
-
-        if not title:
-            raise ValueError("Title cannot be empty or whitespace")
-        if not content:
-            raise ValueError("Content cannot be empty or whitespace")
-
-        values.title = title
-        values.content = content
-        values.slug = slug
+        values.title = values.title.strip()
+        values.content = values.content.strip()
+        values.slug = values.slug.strip() if values.slug else None
         return values
 
 

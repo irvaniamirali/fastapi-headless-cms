@@ -1,10 +1,10 @@
-from app.core.exceptions.app_exceptions import (
+from app.common.exceptions.app_exceptions import (
     DatabaseOperationException,
     InvalidCredentialsException,
 )
 from app.domain.user.repositories import UserRepositoryInterface
-from app.utils.jwt import create_access_token
-from app.utils.security import verify_password
+from app.utils.auth.jwt import create_access_token
+from app.utils.auth.security import verify_password
 
 from ..schemas import Token
 
@@ -27,7 +27,7 @@ class LoginUser:
         try:
             user = await self.user_repository.get_by_email(email)
         except Exception as e:
-            raise DatabaseOperationException(operation="select", message=str(e))
+            raise DatabaseOperationException(operation="read", message=str(e))
 
         if not user or not verify_password(password, user.password):  # type: ignore[arg-type]
             raise InvalidCredentialsException()

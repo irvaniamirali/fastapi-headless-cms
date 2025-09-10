@@ -18,5 +18,5 @@ async def test_login_success(http_client):
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["data"]
     assert "access_token" in data

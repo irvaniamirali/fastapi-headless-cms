@@ -3,6 +3,7 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_list_comments_post_not_found(http_client):
-    response = await http_client.get("/v1/comments/post/99999")
+    comment_id = 99999
+    response = await http_client.get(f"/v1/comments/post/{comment_id}")
     assert response.status_code == 404
-    assert response.json()["error"]["message"] == "Post not found"
+    assert response.json()["detail"]["message"] == f"Post with id {comment_id} not found."

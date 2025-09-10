@@ -10,5 +10,5 @@ async def test_list_comments_pagination(
         await create_comment_fixture(post=post)
     response = await http_client.get(f"/v1/comments/post/{post.id}?limit=2&skip=1")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["data"]
     assert len(data) == 2

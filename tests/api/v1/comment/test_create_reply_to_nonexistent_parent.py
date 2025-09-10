@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.jwt import create_access_token
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -13,4 +13,4 @@ async def test_create_reply_to_nonexistent_parent(
     data = {"post_id": post.id, "content": "This should fail.", "parent_id": 99999}
     response = await http_client.post("/v1/comments/", json=data, headers=headers)
     assert response.status_code == 404
-    assert response.json()["error"]["message"] == "Parent comment not found"
+    assert response.json()["detail"]["message"] == f"Parent comment with id {data["parent_id"]} was not found."

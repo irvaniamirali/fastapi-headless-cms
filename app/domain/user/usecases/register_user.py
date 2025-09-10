@@ -1,39 +1,46 @@
-from app.core.exceptions.app_exceptions import (
-    ConflictException,
+from app.common.exceptions.app_exceptions import (
+    DuplicateEntryException,
     DatabaseOperationException,
 )
-from app.utils.security import hash_password
+from app.utils.auth.security import hash_password
 
-from ..models import User
 from ..repositories import UserRepositoryInterface
 from ..schemas import UserCreate, UserRead
 
 
 class RegisterUser:
-    """
-    Use case for registering a new user.
-
-    Steps:
-    1. Check if the email is already registered; raise ConflictException if it exists.
-    2. Hash the user's password.
-    3. Insert the new user into the repository; raise DatabaseOperationException on failure.
-    4. Return the created user as a UserRead schema.
-    """
 
     def __init__(self, user_repository: UserRepositoryInterface) -> None:
         self.user_repository = user_repository
 
-    async def execute(self, user_schema: UserCreate):
-        if await self.user_repository.exists("email", user_schema.email):
-            raise ConflictException("Email already registered.")
+    async def execute(self, user_schema: UserCreate) -> UserRead:
+        """
+        Register a new user.
 
-        user = User(
-            email=user_schema.email, password=hash_password(user_schema.password)
-        )
+        Args:
+            user_schema (UserCreate): User input data including email and password.
+
+        Raises:
+            DuplicateEntryException: If the email is already registered.
+            DatabaseOperationException: If creating user fails.
+
+        Returns:
+            UserRead: The newly created user.
+        """
+
+        if await self.user_repository.exists("email", user_schema.email):
+            raise DuplicateEntryException(field="email", value=str(user_schema.email))
 
         try:
-            await self.user_repository.insert(user)
+            user = await self.user_repository.create_user(
+                email=str(user_schema.email),
+                password=hash_password(user_schema.password),
+            )
         except Exception as e:
-            raise DatabaseOperationException(operation="insert") from e
+            raise DatabaseOperationException(
+                operation="create",
+                message=f"Failed to create user with email {user_schema.email}",
+                data={"email": user_schema.email},
+            ) from e
 
         return UserRead.model_validate(user)

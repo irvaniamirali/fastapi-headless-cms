@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.jwt import create_access_token
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -20,6 +20,6 @@ async def test_create_reply_to_different_post(
     response = await http_client.post("/v1/comments/", json=data, headers=headers)
     assert response.status_code == 403
     assert (
-        response.json()["error"]["message"]
+        response.json()["detail"]["message"]
         == "Parent comment belongs to a different post"
     )

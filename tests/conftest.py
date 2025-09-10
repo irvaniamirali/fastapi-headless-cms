@@ -9,7 +9,6 @@ from app.domain.comment.models import Comment
 from app.domain.comment.repositories import CommentRepository
 from app.domain.post.models import Post
 from app.domain.post.repositories import PostRepository
-from app.domain.user.models import User
 from app.domain.user.repositories import UserRepository
 from app.domain.user.schemas import UserCreate
 from app.domain.user.usecases.register_user import RegisterUser
@@ -70,9 +69,10 @@ async def registered_user(db_session):
     """
     Fixture to create a registered user with a unique email for each test.
     """
+
     unique_email = f"test_post_user_{uuid.uuid4()}@example.com"
     user_data = {"email": unique_email, "password": "StrongPassword123!"}
-    user_repository = UserRepository(db_session, User)
+    user_repository = UserRepository(db_session)
     user_schema = UserCreate(**user_data)
     user = await RegisterUser(user_repository).execute(user_schema)
     return user
@@ -85,7 +85,7 @@ async def registered_user2(db_session):
     """
     unique_email = f"test_post_user2_{uuid.uuid4()}@example.com"
     user_data = {"email": unique_email, "password": "StrongPassword123!"}
-    user_repository = UserRepository(db_session, User)
+    user_repository = UserRepository(db_session)
     user_schema = UserCreate(**user_data)
     user = await RegisterUser(user_repository).execute(user_schema)
     return user
@@ -98,7 +98,7 @@ async def registered_superuser(db_session):
     """
     unique_email = f"superuser_{uuid.uuid4()}@example.com"
     user_data = {"email": unique_email, "password": "StrongPassword123!"}
-    user_repository = UserRepository(db_session, User)
+    user_repository = UserRepository(db_session)
     user_schema = UserCreate(**user_data)
     user = await RegisterUser(user_repository).execute(user_schema)
     user.is_superuser = True
@@ -120,7 +120,7 @@ async def create_post_fixture(db_session, registered_user):
         author=registered_user,
     ):
         post_repository = PostRepository(db_session)
-        post = await post_repository.create(
+        post = await post_repository.create_post(
             title=title, content=content, author_id=author.id
         )
         return post

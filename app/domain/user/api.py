@@ -1,6 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import Request, APIRouter, Depends, status
+
+from app.common.http_responses.success_response import SuccessResponse, SuccessCodes
+from app.common.http_responses.success_result import SuccessResult
 
 from .depends import get_user_repository
 from .repositories import UserRepositoryInterface
@@ -12,7 +15,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post(
     "/register",
-    response_model=UserRead,
+    response_model=SuccessResponse[UserRead],
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
     responses={
@@ -22,14 +25,15 @@ router = APIRouter(prefix="/users", tags=["Users"])
     },
 )
 async def register_user(
+    request: Request,
     user_schema: UserCreate,
     user_repository: Annotated[UserRepositoryInterface, Depends(get_user_repository)],
 ):
-    """
-    Endpoint to register a new user.
-
-    - **user_schema**: UserCreate schema with `email` and `password`.
-    - **returns**: UserRead schema of the newly created user.
-    - **raises**: ConflictException if email already exists, DatabaseOperationException on DB error.
-    """
-    return await RegisterUser(user_repository).execute(user_schema)
+    user_data = await RegisterUser(user_repository).execute(user_schema)
+    result = SuccessResult[UserRead].create(
+        code=SuccessCodes.CREATED,
+        message="User created successfully",
+        status_code=status.HTTP_201_CREATED,
+        data=user_data,
+    )
+    return result.to_json_response(request)

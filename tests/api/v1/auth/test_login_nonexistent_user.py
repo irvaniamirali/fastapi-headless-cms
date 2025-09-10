@@ -8,4 +8,4 @@ async def test_login_nonexistent_user(http_client):
         data={"username": "notfound@example.com", "password": "AnyPassword"},
     )
     assert response.status_code == 401
-    assert response.json()["error"]["message"] == "Invalid credentials"
+    assert response.json()["detail"]["message"] == "Authentication failed"

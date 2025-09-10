@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.jwt import create_access_token
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -15,4 +15,4 @@ async def test_update_comment_by_different_user(
         f"/v1/comments/{comment.id}", json=update_data, headers=headers
     )
     assert response.status_code == 403
-    assert response.json()["error"]["message"] == "Not allowed to edit this comment"
+    assert response.json()["detail"]["message"] == "You are not allowed to edit this comment."

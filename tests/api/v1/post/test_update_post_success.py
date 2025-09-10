@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.jwt import create_access_token
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -15,6 +15,6 @@ async def test_update_post_success(http_client, create_post_fixture, registered_
     )
 
     assert response.status_code == 200
-    updated_post = response.json()
+    updated_post = response.json()["data"]
     assert updated_post["title"] == "Updated Title"
     assert updated_post["content"] == "Updated content"

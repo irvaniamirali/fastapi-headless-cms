@@ -10,6 +10,6 @@ async def test_list_posts_success(http_client, create_post_fixture):
 
     response = await http_client.get("/v1/posts/")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["data"]
     assert data["total"] >= 3
     assert len(data["items"]) >= 3

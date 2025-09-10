@@ -2,6 +2,8 @@ import uuid
 
 import pytest
 
+from app.common.http_responses.error_response import ErrorCodes
+
 
 @pytest.mark.asyncio
 async def test_login_invalid_password(http_client):
@@ -16,4 +18,5 @@ async def test_login_invalid_password(http_client):
         "/v1/auth/login", data={"username": unique_email, "password": "WrongPassword"}
     )
     assert response.status_code == 401
-    assert response.json()["error"]["message"] == "Invalid credentials"
+    assert response.json()["detail"]["code"] == ErrorCodes.INVALID_CREDENTIALS
+    assert response.json()["detail"]["message"] == "Authentication failed"

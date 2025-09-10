@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.jwt import create_access_token
+from app.utils.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -13,7 +13,7 @@ async def test_create_comment_success(
     data = {"post_id": post.id, "content": "This is a new comment."}
     response = await http_client.post("/v1/comments/", json=data, headers=headers)
     assert response.status_code == 201
-    comment_data = response.json()
+    comment_data = response.json()["data"]
     assert comment_data["content"] == data["content"]
     assert comment_data["author_id"] == registered_user.id
     assert "replies" in comment_data
