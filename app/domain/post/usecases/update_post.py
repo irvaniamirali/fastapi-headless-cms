@@ -1,6 +1,7 @@
-from app.common.exceptions import (
+from app.common.exceptions.app_exceptions import (
     EntityNotFoundException,
     PermissionDeniedException,
+    DatabaseOperationException
 )
 
 from ..repositories import PostRepositoryInterface
@@ -34,12 +35,21 @@ class UpdatePost:
                 Includes {"post_id": post_id} in exception data.
             PermissionDeniedException: If the actor is neither the author nor a superuser.
                 Includes {"post_id": post_id, "actor_id": actor_id} in exception data.
+            DatabaseOperationException: If a database operation fails during read or update.
+                Includes {"post_id": post_id, "update_data": update_data} in exception data.
 
         Returns:
             PostOut: The updated post.
         """
 
-        post = await self.post_repository.get_by_id(post_id)
+        try:
+            post = await self.post_repository.get_post_by_id(post_id)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="read",
+                message=f"Failed to read post with id {post_id}",
+                data={"post_id": post_id},
+            ) from e
 
         if not post:
             raise EntityNotFoundException(
@@ -54,6 +64,14 @@ class UpdatePost:
             )
 
         update_data = data.model_dump(exclude_unset=True)
-        updated = await self.post_repository.update(post=post, **update_data)
+
+        try:
+            updated = await self.post_repository.update_post(post=post, **update_data)
+        except Exception as e:
+            raise DatabaseOperationException(
+                operation="update",
+                message=f"Failed to update post with id {post_id}",
+                data={"post_id": post_id, "update_data": update_data},
+            ) from e
 
         return PostOut.model_validate(updated)
